@@ -1,0 +1,13 @@
+Sweep Kitchen
+Sweep Common Room
+Wash All Dishes
+Organize the Common Room
+Wipe down Kitchen counter and Stove
+Put away Washed Dishes
+Wipe Down Toilet
+Clean Shower
+Sweep Bathroom
+Wipe Down Sink and Mirror
+Take out Trash
+Refill the Water filter
+

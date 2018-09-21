@@ -1,19 +1,24 @@
+from Chore import Chore
 class Roommate:
-    days = []
-    chore = None
-
-    def __init__(self, name, number, days):
-        self.name = name
-        self.number = number
-        self.days = days
-
-    def getName(self):
-        return self.name
-
-    def getNumber(self):
-        return self.number
+	
+	chorecompleted = False
+	days = []
+	Chore = None
 
 
+	def __init__(self,name,number,days):
+		self.name =name
+		self.number = number
+		self.days = days
 
-    def __str__(self):
-        return str(self.name) + "," + str(self.days) + "," + str(self.chore)
+
+	def getName(self):
+		return self.name
+
+	def getNumber(self):
+		return self.number
+
+	def setChoreCompleted(self):
+		self.chorecompleted = true
+
+

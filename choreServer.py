@@ -5,11 +5,12 @@ from twilio.rest import Client
 from Roommate import Roommate
 from flask import Flask, request
 import random
+import time
 
 account_sid = ''
 auth_token = ''
 
-roommates = [Roommate("TEST","NUMBER",[0,1])]
+roommates = [Roommate("E", "+12543216543", [0, 2]), ]
 
 todoChores = ["Sweep Kitchen", "Sweep Common Room", "Wash All Dishes", "Organize the Common Room",
               "Wipe down Kitchen counter and Stove", "Put away Washed Dishes", "Wipe Down Toilet", "Clean Shower",
@@ -22,22 +23,41 @@ date = datetime.datetime.today().weekday()
 app = Flask(__name__)
 
 
+
 # This method finds the roommates who signed up for the current weekday and randonly give them a chore\
 def assignChore():
-    print("BANG BANG BANG")
     temp = []
     for roommate in roommates:
+
         for day in roommate.days:
+
             if (day == date):
+
+                if(roommate.chore is not None): #if roommate did not complete chore give it back to them and shame them
+                    sendChore(roommate,date)
+                    notifyRoommates()
+
                 rand = random.randint(0, len(todoChores))
                 print("%s IS getting a chore" % roommate.name)
                 roommate.chore = todoChores[rand]
                 workers.append(roommate)
                 temp.append(todoChores[rand])
                 sendChore(roommate, date)
+                notifyRoommates()
                 del todoChores[rand]
-    todoChores.extend(temp)  # add all the used chores back to the TODO list until they are verified done
 
+    todoChores.extend(temp)  # add all the used chores back to the TODO list until they are verified done
+    debug()
+
+def debug():
+    print "ROOMMATES \n"
+    print "\n".join([str(x) for x in roommates])
+    print "WORKERS \n"
+    print  "\n".join([str(x) for x in workers])
+    print "TODO CHORES\n"
+    print "\n".join([str(x) for x in todoChores])
+    print "DONE CHORES \n"
+    print "\n".join([str(x) for x in doneChores])
 
 def sendChore(roommate, date):
     client = Client(account_sid, auth_token)
@@ -62,6 +82,37 @@ def sendMessage(roommate, message):
         from_='+16506956346',
         to=roommate.number
     )
+
+def notifyRoommates():
+    client = Client(account_sid, auth_token)
+
+    text = "The roommate(s) who have chores today are: \n"
+
+    for worker in workers:
+        text = text + str(worker.name) + ": " + str(worker.chore) + "\n"
+
+
+    for roommate in roommates:
+        if(roommate not in workers):
+            message = client.messages \
+                .create(
+                body=text,
+                from_='+16506956346',
+                to=roommate.number
+        )
+
+def shameMesage(violater):
+    client = Client(account_sid, auth_token)
+
+    for roommate in roommates:
+        if(roommate not in workers):
+            text = "Your fellow roommate %s failed to complete his chore yesterday!" % violater.name
+            message = client.messages \
+                .create(
+                body=text,
+                from_='+16506956346',
+                to=roommate.number
+        )
 
 
 def sendVerification(verifier, roommate):
@@ -94,7 +145,7 @@ def sms_reply():
     print(message_body)
 
 
-    if (message_body.lower() == "done" and any(worker.number == number for worker in workers)):
+    if (message_body.lower() == "done" and any(worker.number == number for worker in workers)): #Not clear who the sender is
         print(" %s Completed his chore requesting verfication" % sender)
         for roommate in roommates:
             if (roommate.number is not sender.number):
@@ -117,7 +168,7 @@ def sms_reply():
     return str("OK")
 
 
-schedule.every().day.at("18:31").do(assignChore)
+schedule.every().day.at("11:21").do(assignChore)
 
 if __name__ == "__main__":
 
@@ -126,7 +177,18 @@ if __name__ == "__main__":
     print("Starting Chron Job")
 
     while 1:
+        date = datetime.datetime.today().weekday()
+
+        if(date == 0): #on Monday reset all values before starting
+            todoChores = todoChores + doneChores
+            roommates = roommates + workers
+            doneChores = []
+            workers = []
+            print("Debug status: " + str(todoChores) + " " + str(roommates) )
+
+
         schedule.run_pending()
+        time.sleep(5)
 
 
 

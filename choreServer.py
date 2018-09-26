@@ -11,12 +11,16 @@ import time
 account_sid = 'AC6ca4c88efe5765fece8df0c5efb47c37'
 auth_token = '090e0eb4c5695b12007c86caaed97f31'
 
-roommates = [Roommate("Ed", "+17072878986", [0, 2]), Roommate("Seb", "+17072257532", [0, 3]), Roommate("Jake","+15593080259",[1,3]), Roommate("Chase","+18053387701",[4,6])]
+roommates = [Roommate("Ed", "+17072878986", [0, 2]), Roommate("Seb", "+17072257532", [2, 3]), Roommate("Jake","+15593080259",[1,3]), Roommate("Chase","+18053387701",[0,6])]
 
-todoChores = ["Sweep Kitchen", "Sweep Common Room", "Wash All Dishes", "Organize the Common Room",
-              "Wipe down Kitchen counter and Stove", "Put away Washed Dishes", "Wipe Down Toilet", "Clean Shower",
-              "Sweep Bathroom", "Wipe Down Sink and Mirror", "Take out Trash", "Refill the Water filter"]
-doneChores = []
+
+
+todoChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",
+              "Wipe down kitchen counter and Stove", "Wipe Down Toilet", "Clean Shower", "Take out Trash" ]
+
+
+
+doneChores = ["Wash and put away all dishes","Organize the Common Room"]
 workers = []  # list of roommates with tasks assiged for the day
 verificationlist = []  # list of roommates who have reccived verfication texts
 
@@ -43,8 +47,9 @@ def assignChore():
                 workers.append(roommate)
                 temp.append(todoChores[rand])
                 sendChore(roommate, date)
-                notifyRoommates()
                 del todoChores[rand]
+    notifyRoommates()
+
 
     todoChores.extend(temp)  # add all the used chores back to the TODO list until they are verified done
     debug()
@@ -91,6 +96,7 @@ def notifyRoommates():
     for worker in workers:
         text = text + str(worker.name) + ": " + str(worker.chore) + "\n"
 
+    print("Noify Method: %s" % text )
 
     for roommate in roommates:
         if(roommate not in workers):
@@ -168,27 +174,26 @@ def sms_reply():
 
     return str("OK")
 
+def resetWeeklyChores():
+    todoChores = todoChores + doneChores
+    roommates = roommates + workers
+    doneChores = []
+    workers = []
+    print("Reset status: " + str(todoChores) + " " + str(roommates) )
 
-schedule.every().day.at("9:30").do(assignChore)
+
+
+schedule.every().day.at("9:50").do(assignChore)
+schedule.every().monday.do(resetWeeklyChores)
 
 if __name__ == "__main__":
-
-    listener_thread = threading.Thread(target=app.run)
+    listener_thread = threading.Thread(target=app.run,kwargs={'host':'0.0.0.0'})
     listener_thread.setDaemon(True)
     listener_thread.start()
     print("Starting Chron Job")
 
     while 1:
         date = datetime.datetime.today().weekday()
-
-        if(date == 0): #on Monday reset all values before starting
-            todoChores = todoChores + doneChores
-            roommates = roommates + workers
-            doneChores = []
-            workers = []
-            print("Debug status: " + str(todoChores) + " " + str(roommates) )
-
-
         schedule.run_pending()
         time.sleep(5)
 

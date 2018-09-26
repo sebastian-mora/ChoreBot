@@ -11,16 +11,14 @@ import time
 account_sid = '***REMOVED***'
 auth_token = '***REMOVED***'
 
-roommates = [Roommate("Ed", "+***REMOVED***", [0, 2]), Roommate("Seb", "+***REMOVED***", [2, 3]), Roommate("Jake","+***REMOVED***",[1,3]), Roommate("Chase","+***REMOVED***",[0,6])]
-
+roommates = [Roommate("Ed", "+***REMOVED***", [0, 2]), Roommate("Seb", "+***REMOVED***", [0, 3]), Roommate("Jake","+***REMOVED***",[1,3]), Roommate("Chase","+***REMOVED***",[4,6])]
 
 
 todoChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",
               "Wipe down kitchen counter and Stove", "Wipe Down Toilet", "Clean Shower", "Take out Trash" ]
 
-
-
 doneChores = ["Wash and put away all dishes","Organize the Common Room"]
+
 workers = []  # list of roommates with tasks assiged for the day
 verificationlist = []  # list of roommates who have reccived verfication texts
 
@@ -76,7 +74,7 @@ def sendChore(roommate, date):
         body=text,
         from_='+***REMOVED***',
         to=roommate.number
-    )
+)
 
 
 def sendMessage(roommate, message):
@@ -86,7 +84,7 @@ def sendMessage(roommate, message):
         body=message,
         from_='+***REMOVED***',
         to=roommate.number
-    )
+)
 
 def notifyRoommates():
     client = Client(account_sid, auth_token)
@@ -105,7 +103,7 @@ def notifyRoommates():
                 body=text,
                 from_='+***REMOVED***',
                 to=roommate.number
-        )
+            )
 
 def shameMesage(violater):
     client = Client(account_sid, auth_token)
@@ -136,7 +134,7 @@ def sendVerification(verifier, roommate):
         body=text,
         from_='+***REMOVED***',
         to=verifier.number
-    )
+        )
 
 
 @app.route("/sms", methods=['GET', 'POST'])
@@ -160,9 +158,12 @@ def sms_reply():
                 verificationlist.append(roommate.number)
 
     if ("YES" in message_body and number in verificationlist):
-        name = message_body.split()
-        name = name[1]
 
+        try:
+            name = message_body.split()
+            name = name[1]
+        except:
+            sendMessage(sender, "Invaild input please use the format (DONE NAME)")
         for worker in workers:
             if (name.lower() == worker.name.lower() and worker.chore is not None):
                 print("Confirmation for %s by %s" % (worker.name, sender))
@@ -175,21 +176,21 @@ def sms_reply():
     return str("OK")
 
 def resetWeeklyChores():
-    todoChores = todoChores + doneChores
-    roommates = roommates + workers
-    doneChores = []
-    workers = []
+    todoChores.extend(doneChores)
+    roommates.extend(workers)
+    del doneChores[:]
+    del workers[:]
     print("Reset status: " + str(todoChores) + " " + str(roommates) )
 
-
-
-schedule.every().day.at("9:50").do(assignChore)
+schedule.every().day.at("9:30").do(assignChore)
 schedule.every().monday.do(resetWeeklyChores)
 
 if __name__ == "__main__":
     listener_thread = threading.Thread(target=app.run,kwargs={'host':'0.0.0.0'})
     listener_thread.setDaemon(True)
     listener_thread.start()
+    #assignChore()
+    resetWeeklyChores()
     print("Starting Chron Job")
 
     while 1:

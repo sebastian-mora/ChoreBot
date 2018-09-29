@@ -1,15 +1,13 @@
 import threading
 import schedule
 import datetime
-from twilio.rest import Client
+from Texter import Texter
 from Roommate import Roommate
 from flask import Flask, request
 import random
 import time
 
 
-account_sid = 'AC6ca4c88efe5765fece8df0c5efb47c37'
-auth_token = '090e0eb4c5695b12007c86caaed97f31'
 
 roommates = [Roommate("Seb", "+17072257532", [5, 3]) , Roommate("Jake","+15593080259",[1,3]),
              Roommate("Jake", "+15593080259", [1, 3]),Roommate("Chase","+18053387701",[4,6]),
@@ -34,6 +32,10 @@ verificationlist = []  # list of roommates who have reccived verfication texts
 date = datetime.datetime.today().weekday()
 app = Flask(__name__)
 
+account_sid = 'AC6ca4c88efe5765fece8df0c5efb47c37'
+auth_token = '090e0eb4c5695b12007c86caaed97f31'
+
+texter = Texter("AC6ca4c88efe5765fece8df0c5efb47c37","090e0eb4c5695b12007c86caaed97f31",'+16506956346')
 
 # This method finds the roommates who signed up for the current weekday and randonly give them a chore\
 def assignChore():
@@ -45,7 +47,7 @@ def assignChore():
             if (day == date):
 
                 if (roommate.chore): #if roommate did not complete chore give it back to them and shame them
-                    sendChore(roommate,date)
+                    texter.sendChore(roommate,date)
                     notifyRoommates()
 
                 randweekly = random.randint(0, len(weeklyChores) - 1)
@@ -57,7 +59,7 @@ def assignChore():
                 roommate.chore.append(recurringChores[randreurring])
                 workers.append(roommate)
                 temp.append(weeklyChores[randweekly])
-                sendChore(roommate, date)
+                texter.sendChore(roommate, date)
 
                 del weeklyChores[randweekly]
     notifyRoommates()
@@ -76,79 +78,44 @@ def debug():
     print "DONE CHORES \n"
     print "\n".join([str(x) for x in doneChores])
 
-def sendChore(roommate, date):
-    client = Client(account_sid, auth_token)
-    text = "%s \n Good Morning %s! \n \n The chore that you have been assigned today is: \n %s \n\n please respond DONE " \
-           "when you have completed the chore." % (date, roommate.name, roommate.chore)
-    print(
-        "%s \n Good Morning %s! \n The chore that you have been assigned today is: \n %s \n please respond "
-        "DONE when you have completed the chore." % (date, roommate.name, roommate.chore))
-    message = client.messages \
-        .create(
-        body=text,
-        from_='+16506956346',
-        to=roommate.number
-)
 
-
-def sendMessage(roommate, message):
-    client = Client(account_sid, auth_token)
-    message = client.messages \
-        .create(
-        body=message,
-        from_='+16506956346',
-        to=roommate.number
-)
 
 def notifyRoommates():
-    client = Client(account_sid, auth_token)
 
-    text = "The roommate(s) who have chores today are: \n"
+
+    message = "The roommate(s) who have chores today are: \n"
 
     for worker in workers:
-        text = text + str(worker.name) + ": " + str(worker.chore) + "\n"
+        message = message + str(worker.name) + ": " + str(worker.chore) + "\n"
 
-    print("Noify Method: %s" % text )
+    print("Noify Method: %s" % message )
 
     for roommate in roommates:
         if(roommate not in workers):
-            message = client.messages \
-                .create(
-                body=text,
-                from_='+16506956346',
-                to=roommate.number
-            )
+            texter.sendMessage(roommate.number,message)
+
 
 def shameMesage(violater):
-    client = Client(account_sid, auth_token)
 
     for roommate in roommates:
         if(roommate not in workers):
-            text = "Your fellow roommate %s failed to complete his chore yesterday!" % violater.name
-            message = client.messages \
-                .create(
-                body=text,
-                from_='+16506956346',
-                to=roommate.number
-        )
-#pls git
+            message = "Your fellow roommate %s failed to complete his chore yesterday!" % violater.name
+            texter.sendMessage(roommate.number,message)
+
 
 def sendVerification(verifier, roommate):
     verificationlist.append(verifier)
-    client = Client(account_sid, auth_token)
-    text = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please respond (" \
+
+    message = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please respond (" \
            "YES %s) if he has completed their daily chores" % (
                verifier.name, roommate.name, roommate.chore, roommate.name)
     print(
         "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please "
         "respond (YES %s) if he has completed their daily chores" % (
             verifier.name, roommate.name, roommate.chore, roommate.name))
-    message = client.messages \
-        .create(
-        body=text,
-        from_='+16506956346',
-        to=verifier.number
-        )
+
+    texter.sendMessage(verifier.number,message)
+
 
 
 @app.route("/sms", methods=['GET', 'POST'])
@@ -170,7 +137,7 @@ def sms_reply():
                 print("verfication sent to %s", roommate.name)
                 sendVerification(roommate, sender)
                 verificationlist.append(roommate.number)
-                sendMessage(sender,"Your request is being processed by your roommates")
+                texter.sendMessage(sender,"Your request is being processed by your roommates")
 
     if ("YES" in message_body and number in verificationlist):
 
@@ -178,7 +145,7 @@ def sms_reply():
             name = message_body.split()
             name = name[1]
         except:
-            sendMessage(sender, "Invaild input please use the format (DONE NAME)")
+            texter.sendMessage(sender, "Invaild input please use the format (DONE NAME)")
 
         for worker in workers:
             if (name.lower() == worker.name.lower() and worker.chore is not None):
@@ -186,8 +153,8 @@ def sms_reply():
                 worker.chore = []
                 roommates.append(worker)
                 workers.remove(worker)
-                sendMessage(worker, "Your task has been verified! Thank you!")
-                sendMessage(sender, "You have verified %s's task!" % worker.name)
+                texter.sendMessage(worker, "Your task has been verified! Thank you!")
+                texter.sendMessage(sender, "You have verified %s's task!" % worker.name)
 
     return str("OK")
 
@@ -205,9 +172,7 @@ if __name__ == "__main__":
     listener_thread = threading.Thread(target=app.run,kwargs={'host':'0.0.0.0'})
     listener_thread.setDaemon(True)
     listener_thread.start()
-    #assignChore()
     resetWeeklyChores()
-    assignChore()
     print("Starting Chron Job")
 
     while 1:

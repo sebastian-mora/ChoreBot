@@ -131,7 +131,7 @@ def shameMesage(violater):
                 from_='+***REMOVED***',
                 to=roommate.number
         )
-
+#pls git
 
 def sendVerification(verifier, roommate):
     verificationlist.append(verifier)

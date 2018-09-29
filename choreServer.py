@@ -11,13 +11,20 @@ import time
 account_sid = '***REMOVED***'
 auth_token = '***REMOVED***'
 
-roommates = [Roommate("Ed", "+***REMOVED***", [0, 2]), Roommate("Seb", "+***REMOVED***", [0, 3]), Roommate("Jake","+***REMOVED***",[1,3]), Roommate("Chase","+***REMOVED***",[4,6])]
+roommates = [Roommate("Seb", "+***REMOVED***", [5, 3])]
+
+#, Roommate("Jake","+***REMOVED***",[1,3]), Roommate("Chase","+***REMOVED***",[4,6])]
+#Roommate("Ed", "+***REMOVED***", [0, 2]),
 
 
-todoChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",
-              "Wipe down kitchen counter and Stove", "Wipe Down Toilet", "Clean Shower", "Take out Trash" ]
+weeklyChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",
+              "Wipe down kitchen counter and Stove", "Wipe Down Toilet", "Clean Shower", "Remove old Food from fridge",
+                "You got lucky no main chore!","You got lucky no main chore!"]
 
-doneChores = ["Wash and put away all dishes","Organize the Common Room"]
+recurringChores = ["Take out Trash","Organize the Common Room","Wash all dishes",
+                   "Put away clean dishes"]
+
+doneChores = []
 
 workers = []  # list of roommates with tasks assiged for the day
 verificationlist = []  # list of roommates who have reccived verfication texts
@@ -35,21 +42,26 @@ def assignChore():
 
             if (day == date):
 
-                if(roommate.chore is not None): #if roommate did not complete chore give it back to them and shame them
+                if (roommate.chore): #if roommate did not complete chore give it back to them and shame them
                     sendChore(roommate,date)
                     notifyRoommates()
 
-                rand = random.randint(0, len(todoChores))
+                randweekly = random.randint(0, len(weeklyChores) - 1)
+                randreurring = random.randint(0, len(recurringChores) - 1)
+
                 print("%s IS getting a chore" % roommate.name)
-                roommate.chore = todoChores[rand]
+
+                roommate.chore.append(weeklyChores[randweekly])
+                roommate.chore.append(recurringChores[randreurring])
                 workers.append(roommate)
-                temp.append(todoChores[rand])
+                temp.append(weeklyChores[randweekly])
                 sendChore(roommate, date)
-                del todoChores[rand]
+
+                del weeklyChores[randweekly]
     notifyRoommates()
 
 
-    todoChores.extend(temp)  # add all the used chores back to the TODO list until they are verified done
+    weeklyChores.extend(temp)  # add all the used chores back to the TODO list until they are verified done
     debug()
 
 def debug():
@@ -58,13 +70,13 @@ def debug():
     print "WORKERS \n"
     print  "\n".join([str(x) for x in workers])
     print "TODO CHORES\n"
-    print "\n".join([str(x) for x in todoChores])
+    print "\n".join([str(x) for x in weeklyChores])
     print "DONE CHORES \n"
     print "\n".join([str(x) for x in doneChores])
 
 def sendChore(roommate, date):
     client = Client(account_sid, auth_token)
-    text = "%s \n Good Morning %s! \n The chore that you have been assigned today is: \n %s \n please respond DONE " \
+    text = "%s \n Good Morning %s! \n \n The chore that you have been assigned today is: \n %s \n\n please respond DONE " \
            "when you have completed the chore." % (date, roommate.name, roommate.chore)
     print(
         "%s \n Good Morning %s! \n The chore that you have been assigned today is: \n %s \n please respond "
@@ -123,11 +135,11 @@ def sendVerification(verifier, roommate):
     verificationlist.append(verifier)
     client = Client(account_sid, auth_token)
     text = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please respond (" \
-           "YES %s) if he has completed the chore" % (
+           "YES %s) if he has completed their daily chores" % (
                verifier.name, roommate.name, roommate.chore, roommate.name)
     print(
         "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please "
-        "respond (YES %s) if he has completed the chore" % (
+        "respond (YES %s) if he has completed their daily chores" % (
             verifier.name, roommate.name, roommate.chore, roommate.name))
     message = client.messages \
         .create(
@@ -156,6 +168,7 @@ def sms_reply():
                 print("verfication sent to %s", roommate.name)
                 sendVerification(roommate, sender)
                 verificationlist.append(roommate.number)
+                sendMessage(sender,"Your request is being processed by your roommates")
 
     if ("YES" in message_body and number in verificationlist):
 
@@ -164,10 +177,11 @@ def sms_reply():
             name = name[1]
         except:
             sendMessage(sender, "Invaild input please use the format (DONE NAME)")
+
         for worker in workers:
             if (name.lower() == worker.name.lower() and worker.chore is not None):
                 print("Confirmation for %s by %s" % (worker.name, sender))
-                worker.chore = None
+                worker.chore = []
                 roommates.append(worker)
                 workers.remove(worker)
                 sendMessage(worker, "Your task has been verified! Thank you!")
@@ -176,11 +190,11 @@ def sms_reply():
     return str("OK")
 
 def resetWeeklyChores():
-    todoChores.extend(doneChores)
+    weeklyChores.extend(doneChores)
     roommates.extend(workers)
     del doneChores[:]
     del workers[:]
-    print("Reset status: " + str(todoChores) + " " + str(roommates) )
+    print("Reset status: " + str(weeklyChores) + " " + str(roommates))
 
 schedule.every().day.at("9:30").do(assignChore)
 schedule.every().monday.do(resetWeeklyChores)
@@ -191,6 +205,7 @@ if __name__ == "__main__":
     listener_thread.start()
     #assignChore()
     resetWeeklyChores()
+    assignChore()
     print("Starting Chron Job")
 
     while 1:

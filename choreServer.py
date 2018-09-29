@@ -11,10 +11,12 @@ import time
 account_sid = 'AC6ca4c88efe5765fece8df0c5efb47c37'
 auth_token = '090e0eb4c5695b12007c86caaed97f31'
 
-roommates = [Roommate("Seb", "+17072257532", [5, 3])]
+roommates = [Roommate("Seb", "+17072257532", [5, 3]) , Roommate("Jake","+15593080259",[1,3]),
+             Roommate("Jake", "+15593080259", [1, 3]),Roommate("Chase","+18053387701",[4,6]),
+             Roommate("Ed", "+17072878986", [0, 2])]
 
-#, Roommate("Jake","+15593080259",[1,3]), Roommate("Chase","+18053387701",[4,6])]
-#Roommate("Ed", "+17072878986", [0, 2]),
+
+
 
 
 weeklyChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",

@@ -1,6 +1,6 @@
 class Roommate:
     days = []
-    chore = None
+    chore = []
 
     def __init__(self, name, number, days):
         self.name = name

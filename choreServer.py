@@ -7,9 +7,10 @@ from flask import Flask, request
 import random
 import time
 
-roommates = [Roommate("Seb", "+17072257532", [6, 3]), Roommate("Ed", "+17072878986", [0, 2])]
+roommates = [Roommate("Seb", "+17072257532", [6, 3]), Roommate("Ed", "+17072878986", [0, 2]),
+             Roommate("Jake", "+15593080259", [1, 3]),Roommate("Chase","+18053387701",[4,6]),]
 
-# Roommate("Jake", "+15593080259", [1, 3]),Roommate("Chase","+18053387701",[4,6]),
+
 
 
 weeklyChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",
@@ -34,7 +35,7 @@ auth_token = '090e0eb4c5695b12007c86caaed97f31'
 texter = Texter("AC6ca4c88efe5765fece8df0c5efb47c37", "090e0eb4c5695b12007c86caaed97f31", '+16506956346')
 
 
-# This method finds the roommates who signed up for the current weekday and randonly give them a chore\
+# This method finds the roommates who signed up for the current weekday and randomly give them a chore
 def assignChore():
     temp = []
     for roommate in roommates:
@@ -76,6 +77,8 @@ def debug():
     print "\n".join([str(x) for x in doneChores])
 
 
+
+#Sends message to all non-working roommates
 def notifyRoommates():
     message = "The roommate(s) who have chores today are: \n"
 
@@ -110,6 +113,7 @@ def sendVerification(verifier, roommate):
     texter.sendMessage(verifier.number, message)
 
 
+#this reccives messages from twillo
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
     message_body = request.form['Body']

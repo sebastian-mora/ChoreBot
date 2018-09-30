@@ -9,12 +9,10 @@ import time
 
 
 
-roommates = [Roommate("Seb", "+***REMOVED***", [5, 3]) , Roommate("Jake","+***REMOVED***",[1,3]),
-             Roommate("Jake", "+***REMOVED***", [1, 3]),Roommate("Chase","+***REMOVED***",[4,6]),
-             Roommate("Ed", "+***REMOVED***", [0, 2])]
+roommates = [Roommate("Seb", "+***REMOVED***", [6, 3]) , Roommate("Ed", "+***REMOVED***", [0, 2])]
 
 
-
+#Roommate("Jake", "+***REMOVED***", [1, 3]),Roommate("Chase","+***REMOVED***",[4,6]),
 
 
 weeklyChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",
@@ -47,7 +45,7 @@ def assignChore():
             if (day == date):
 
                 if (roommate.chore): #if roommate did not complete chore give it back to them and shame them
-                    texter.sendChore(roommate,date)
+                    texter.sendChore(roommate)
                     notifyRoommates()
 
                 randweekly = random.randint(0, len(weeklyChores) - 1)
@@ -59,7 +57,7 @@ def assignChore():
                 roommate.chore.append(recurringChores[randreurring])
                 workers.append(roommate)
                 temp.append(weeklyChores[randweekly])
-                texter.sendChore(roommate, date)
+                texter.sendChore(roommate)
 
                 del weeklyChores[randweekly]
     notifyRoommates()
@@ -136,16 +134,20 @@ def sms_reply():
             if (roommate.number is not sender.number):
                 print("verfication sent to %s", roommate.name)
                 sendVerification(roommate, sender)
-                verificationlist.append(roommate.number)
-                texter.sendMessage(sender,"Your request is being processed by your roommates")
+                if(roommate.number not in verificationlist): #to prevent dups
+                    verificationlist.append(roommate.number)
+                texter.sendMessage(sender.number,"Your request is being processed by your roommates")
 
-    if ("YES" in message_body and number in verificationlist):
+    elif ("YES" in message_body and number in verificationlist):
 
         try:
             name = message_body.split()
             name = name[1]
+            if(not any(worker.name == name for worker in workers)): #if the name found is not a person doing chores
+                raise Exception
+
         except:
-            texter.sendMessage(sender, "Invaild input please use the format (DONE NAME)")
+            texter.sendMessage(sender.number, "Invaild input please use the format (DONE NAME)")
 
         for worker in workers:
             if (name.lower() == worker.name.lower() and worker.chore is not None):
@@ -153,8 +155,8 @@ def sms_reply():
                 worker.chore = []
                 roommates.append(worker)
                 workers.remove(worker)
-                texter.sendMessage(worker, "Your task has been verified! Thank you!")
-                texter.sendMessage(sender, "You have verified %s's task!" % worker.name)
+                texter.sendMessage(worker.number, "Your task has been verified! Thank you!")
+                texter.sendMessage(sender.number, "You have verified %s's task!" % worker.name)
 
     return str("OK")
 
@@ -174,6 +176,7 @@ if __name__ == "__main__":
     listener_thread.start()
     resetWeeklyChores()
     print("Starting Chron Job")
+    assignChore()
 
     while 1:
         date = datetime.datetime.today().weekday()

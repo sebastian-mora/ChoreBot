@@ -12,10 +12,9 @@ class Texter:
         self.account_sid = account_sid
         self.auth_token = auth_token
         self.number = number
-        client = client = Client(account_sid, auth_token)
+        self.client  = Client(account_sid, auth_token)
 
     def sendMessage(self, reccivernumber, message):
-        assert isinstance(reccivernumber)
         message = self.client.messages \
             .create(
             body=message,

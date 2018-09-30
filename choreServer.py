@@ -7,9 +7,10 @@ from flask import Flask, request
 import random
 import time
 
-roommates = [Roommate("Seb", "+***REMOVED***", [6, 3]), Roommate("Ed", "+***REMOVED***", [0, 2])]
+roommates = [Roommate("Seb", "+***REMOVED***", [6, 3]), Roommate("Ed", "+***REMOVED***", [0, 2]),
+             Roommate("Jake", "+***REMOVED***", [1, 3]),Roommate("Chase","+***REMOVED***",[4,6]),]
 
-# Roommate("Jake", "+***REMOVED***", [1, 3]),Roommate("Chase","+***REMOVED***",[4,6]),
+
 
 
 weeklyChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",
@@ -34,7 +35,7 @@ auth_token = '***REMOVED***'
 texter = Texter("***REMOVED***", "***REMOVED***", '+***REMOVED***')
 
 
-# This method finds the roommates who signed up for the current weekday and randonly give them a chore\
+# This method finds the roommates who signed up for the current weekday and randomly give them a chore
 def assignChore():
     temp = []
     for roommate in roommates:
@@ -76,6 +77,8 @@ def debug():
     print "\n".join([str(x) for x in doneChores])
 
 
+
+#Sends message to all non-working roommates
 def notifyRoommates():
     message = "The roommate(s) who have chores today are: \n"
 
@@ -110,6 +113,7 @@ def sendVerification(verifier, roommate):
     texter.sendMessage(verifier.number, message)
 
 
+#this reccives messages from twillo
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
     message_body = request.form['Body']

@@ -12,7 +12,7 @@ class Texter:
         self.account_sid = account_sid
         self.auth_token = auth_token
         self.number = number
-        self.client  = Client(account_sid, auth_token)
+        self.client = Client(account_sid, auth_token)
 
     def sendMessage(self, reccivernumber, message):
         message = self.client.messages \
@@ -35,4 +35,3 @@ class Texter:
             from_=self.number,
             to=roommate.number
         )
-

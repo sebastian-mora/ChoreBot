@@ -13,7 +13,5 @@ class Roommate:
     def getNumber(self):
         return self.number
 
-
-
     def __str__(self):
         return str(self.name) + "," + str(self.days) + "," + str(self.chore)

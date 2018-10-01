@@ -7,8 +7,10 @@ from flask import Flask, request
 import random
 import time
 
-roommates = [Roommate("Seb", "+17072257532", [2, 3]), Roommate("Ed", "+17072878986", [0, 2]),
-             Roommate("Jake", "+15593080259", [1, 3]),Roommate("Chase","+18053387701",[1,6]),]
+roommates = [Roommate("Seb", "+17072257532", [6, 3],[]), Roommate("Ed", "+17072878986", [6, 2],[])]
+
+# Roommate("Jake", "+15593080259", [1, 3]),Roommate("Chase","+18053387701",[1,6]),]
+
 
 
 
@@ -23,7 +25,7 @@ recurringChores = ["Take out Trash", "Organize the Common Room", "Wash all dishe
 
 doneChores = []
 
-workers = []  # list of roommates with tasks assiged for the day
+
 verificationlist = []  # list of roommates who have reccived verfication texts
 
 date = datetime.datetime.today().weekday()
@@ -37,7 +39,6 @@ texter = Texter(account_sid,auth_token,'+16506956346')
 
 # This method finds the roommates who signed up for the current weekday and randomly give them a chore
 def assignChore():
-    temp = []
     for roommate in roommates:
 
         for day in roommate.days:
@@ -55,22 +56,15 @@ def assignChore():
 
                 roommate.chore.append(weeklyChores[randweekly])
                 roommate.chore.append(recurringChores[randreurring])
-                workers.append(roommate)
-                temp.append(weeklyChores[randweekly])
                 texter.sendChore(roommate)
-
                 del weeklyChores[randweekly]
     notifyRoommates()
-
-    weeklyChores.extend(temp)  # add all the used chores back to the TODO list until they are verified done
     debug()
 
 
 def debug():
     print "ROOMMATES \n"
     print "\n".join([str(x) for x in roommates])
-    print "WORKERS \n"
-    print "\n".join([str(x) for x in workers])
     print "TODO CHORES\n"
     print "\n".join([str(x) for x in weeklyChores])
     print "DONE CHORES \n"
@@ -80,23 +74,25 @@ def debug():
 
 #Sends message to all non-working roommates
 def notifyRoommates():
+
+
     message = "The roommate(s) who have chores today are: \n"
 
-    for worker in workers:
-        message = message + str(worker.name) + ": " + str(worker.chore) + "\n"
+    for roommate in roommates:
+        if(roommate.chore):
+            message = message + str(roommate.name) + ": " + str(roommate.chore) + "\n"
 
     print("Notify Method: %s" % message)
 
     for roommate in roommates:
-        if (roommate not in workers):
+        if (not roommate.chore):
             texter.sendMessage(roommate.number, message)
 
 
 def shameMesage(violator):
     for roommate in roommates:
-        if (roommate not in workers):
-            message = "Your fellow roommate %s failed to complete his chore yesterday!" % violator.name
-            texter.sendMessage(roommate.number, message)
+        message = "Your fellow roommate %s failed to complete his chore yesterday!" % violator.name
+        texter.sendMessage(roommate.number, message)
 
 
 def sendVerification(verifier, roommate):
@@ -119,7 +115,6 @@ def sms_listener():
     message_body = request.form['Body']
     number = request.form['From']
 
-
     for roommate in roommates:
         if (roommate.number == number):
             sender = roommate
@@ -131,11 +126,14 @@ def sms_listener():
 def sms_reply(sender,message_body):
 
     if (message_body.lower() == "done" and any(
-            worker.number == sender.number for worker in workers)):  # Not clear who the sender is
+            roommate.number == sender.number for roommate in roommates)
+            and any(roommate.chore== sender.chore for roommate in roommates)): #if the sender is a roommate and has chore
+
         print(" %s Completed his chore requesting verification" % sender)
+
         for roommate in roommates:
             if (roommate.number is not sender.number):
-                print("verfication sent to %s", roommate.name)
+                print("verification sent to %s", roommate.name)
                 sendVerification(roommate, sender)
                 if (roommate.number not in verificationlist):  # to prevent dups
                     verificationlist.append(roommate.number)
@@ -146,29 +144,26 @@ def sms_reply(sender,message_body):
         try:
             name = message_body.split()
             name = name[1]
-            if (not any(worker.name == name for worker in workers)):  # if the name found is not a person doing chores
+            if (any(roommate.name == sender.name for roommate in roommates)):  # if the name found is not a person doing chores
                 raise Exception
 
         except:
-            texter.sendMessage(sender.number, "Invaild input please use the format (DONE NAME)")
+            texter.sendMessage(sender.number, "Invalid input please use the format (DONE NAME)")
 
-        for worker in workers:
-            if (name.lower() == worker.name.lower() and worker.chore is not None):
-                print("Confirmation for %s by %s" % (worker.name, sender))
-                worker.chore = []
-                roommates.append(worker)
-                workers.remove(worker)
-                texter.sendMessage(worker.number, "Your task has been verified! Thank you!")
-                texter.sendMessage(sender.number, "You have verified %s's task!" % worker.name)
+        for roommate in roommates:
+            if (name.lower() == roommate.name.lower() and roommate.chore is not None):
+                print("Confirmation for %s by %s" % (roommate.name, sender))
+                roommate.chore = []
+                texter.sendMessage(roommate.number, "Your task has been verified! Thank you!")
+                texter.sendMessage(sender.number, "You have verified %s's task!" % roommate.name)
+                verificationlist.remove(sender)
 
 
 
 
 def resetWeeklyChores():
     weeklyChores.extend(doneChores)
-    roommates.extend(workers)
     del doneChores[:]
-    del workers[:]
     print("Reset status: " + str(weeklyChores) + " " + str(roommates))
 
 

@@ -1,11 +1,12 @@
 class Roommate:
-    days = []
-    chore = []
 
-    def __init__(self, name, number, days):
+
+    def __init__(self, name, number, days, chores):
         self.name = name
         self.number = number
         self.days = days
+        self.chore = chores
+
 
     def getName(self):
         return self.name

@@ -9,7 +9,7 @@ import time
 
 roommates = [Roommate("Seb", "+***REMOVED***", [6, 3],[]), Roommate("Ed", "+***REMOVED***", [6, 2],[])]
 
-# Roommate("Jake", "+***REMOVED***", [1, 3]),Roommate("Chase","+***REMOVED***",[1,6]),]
+#Roommate("Jake", "+***REMOVED***", [1, 3]),Roommate("Chase","+***REMOVED***",[1,6]),]
 
 
 

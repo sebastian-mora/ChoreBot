@@ -1,6 +1,6 @@
 class Roommate:
 
-
+    #
     def __init__(self, name, number, days, chores):
         self.name = name
         self.number = number

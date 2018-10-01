@@ -7,8 +7,8 @@ from flask import Flask, request
 import random
 import time
 
-roommates = [Roommate("Seb", "+17072257532", [6, 3]), Roommate("Ed", "+17072878986", [0, 2]),
-             Roommate("Jake", "+15593080259", [1, 3]),Roommate("Chase","+18053387701",[4,6]),]
+roommates = [Roommate("Seb", "+17072257532", [2, 3]), Roommate("Ed", "+17072878986", [0, 2]),
+             Roommate("Jake", "+15593080259", [1, 3]),Roommate("Chase","+18053387701",[1,6]),]
 
 
 
@@ -32,7 +32,7 @@ app = Flask(__name__)
 account_sid = 'AC6ca4c88efe5765fece8df0c5efb47c37'
 auth_token = '090e0eb4c5695b12007c86caaed97f31'
 
-texter = Texter("AC6ca4c88efe5765fece8df0c5efb47c37", "090e0eb4c5695b12007c86caaed97f31", '+16506956346')
+texter = Texter(account_sid,auth_token,'+16506956346')
 
 
 # This method finds the roommates who signed up for the current weekday and randomly give them a chore
@@ -113,21 +113,26 @@ def sendVerification(verifier, roommate):
     texter.sendMessage(verifier.number, message)
 
 
-#this reccives messages from twillo
+#Starts flask server. On get it parses then calles sms_reply to handle the logic
 @app.route("/sms", methods=['GET', 'POST'])
-def sms_reply():
+def sms_listener():
     message_body = request.form['Body']
     number = request.form['From']
+
 
     for roommate in roommates:
         if (roommate.number == number):
             sender = roommate
 
-    print(message_body)
+    sms_reply(sender,message_body)
+    return str("OK")
+
+
+def sms_reply(sender,message_body):
 
     if (message_body.lower() == "done" and any(
-            worker.number == number for worker in workers)):  # Not clear who the sender is
-        print(" %s Completed his chore requesting verfication" % sender)
+            worker.number == sender.number for worker in workers)):  # Not clear who the sender is
+        print(" %s Completed his chore requesting verification" % sender)
         for roommate in roommates:
             if (roommate.number is not sender.number):
                 print("verfication sent to %s", roommate.name)
@@ -136,7 +141,7 @@ def sms_reply():
                     verificationlist.append(roommate.number)
                 texter.sendMessage(sender.number, "Your request is being processed by your roommates")
 
-    elif ("YES" in message_body and number in verificationlist):
+    elif ("YES" in message_body and sender.number in verificationlist):
 
         try:
             name = message_body.split()
@@ -156,7 +161,7 @@ def sms_reply():
                 texter.sendMessage(worker.number, "Your task has been verified! Thank you!")
                 texter.sendMessage(sender.number, "You have verified %s's task!" % worker.name)
 
-    return str("OK")
+
 
 
 def resetWeeklyChores():

@@ -7,7 +7,7 @@ from flask import Flask, request
 import random
 import time
 
-roommates = [Roommate("Seb", "+***REMOVED***", [6, 3],[]), Roommate("Ed", "+***REMOVED***", [6, 2],[])]
+roommates = [Roommate("Seb", "+***REMOVED***", [1, 3],[]), Roommate("Ed", "+***REMOVED***", [6, 1],[])]
 
 #Roommate("Jake", "+***REMOVED***", [1, 3]),Roommate("Chase","+***REMOVED***",[1,6]),]
 
@@ -139,12 +139,12 @@ def sms_reply(sender,message_body):
                     verificationlist.append(roommate.number)
                 texter.sendMessage(sender.number, "Your request is being processed by your roommates")
 
-    elif ("YES" in message_body and sender.number in verificationlist):
+    elif ("yes" in message_body.lower() and sender.number in verificationlist):
 
         try:
             name = message_body.split()
             name = name[1]
-            if (any(roommate.name == sender.name for roommate in roommates)):  # if the name found is not a person doing chores
+            if (not any(roommate.name.lower() == name.lower() for roommate in roommates)):  # if the name found is not a person doing chores
                 raise Exception
 
         except:

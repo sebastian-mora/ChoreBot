@@ -7,13 +7,11 @@ from flask import Flask, request
 import random
 import time
 
-roommates = [Roommate("Seb", "+***REMOVED***", [1, 3],[]), Roommate("Ed", "+***REMOVED***", [6, 1],[])]
 
-#Roommate("Jake", "+***REMOVED***", [1, 3]),Roommate("Chase","+***REMOVED***",[1,6]),]
-
-
-
-
+roommates = [Roommate("Seb", "+***REMOVED***", [1, 3],[]),
+             Roommate("Ed", "+***REMOVED***", [6, 1],[]),
+             Roommate("Jake", "+***REMOVED***", [1, 3],[]),
+             Roommate("Chase","+***REMOVED***",[1,6] , [])]
 
 weeklyChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",
                 "Wipe down kitchen counter and Stove", "Wipe Down Toilet", "Clean Shower",
@@ -176,7 +174,6 @@ if __name__ == "__main__":
     listener_thread.start()
     resetWeeklyChores()
     print("Starting Chron Job")
-    assignChore()
 
     while 1:
         date = datetime.datetime.today().weekday()

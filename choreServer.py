@@ -1,4 +1,4 @@
-import threading
+'import threading
 import schedule
 import datetime
 from Texter import Texter
@@ -8,9 +8,9 @@ import random
 import time
 
 
-roommates = [Roommate("Seb", "+17072257532", [1, 3],[]),
-             Roommate("Ed", "+17072878986", [6, 1],[]),
-             Roommate("Jake", "+15593080259", [1, 3],[]),
+roommates = [Roommate("Seb", "+17072257532", [2, 3],[]),
+             Roommate("Ed", "+17072878986", [3, 1],[]),
+             Roommate("Jake", "+15593080259", [3, 4],[]),
              Roommate("Chase","+18053387701",[1,6] , [])]
 
 weeklyChores = ["Sweep/Mop Kitchen", "Sweep/Mop Common Room",

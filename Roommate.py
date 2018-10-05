@@ -5,7 +5,7 @@ class Roommate:
         self.name = name
         self.number = number
         self.days = days
-        self.chore = chores
+        self.chores = chores
 
 
     def getName(self):
@@ -15,4 +15,4 @@ class Roommate:
         return self.number
 
     def __str__(self):
-        return str(self.name) + "," + str(self.days) + "," + str(self.chore)
+        return str(self.name) + "," + str(self.days) + "," + str(self.chores)

@@ -144,7 +144,7 @@ def sms_reply(sender, message_body):
         for roommate in roommates:
             if (name.lower() == roommate.name.lower() and roommate.chores is not None):
                 print("Confirmation for %s by %s" % (roommate.name, sender))
-                roommate.chore = []
+                roommate.chores = []
                 notifyRoommatesStatus()
                 verificationlist.remove(sender)
 

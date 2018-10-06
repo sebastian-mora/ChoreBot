@@ -9,18 +9,18 @@ import time
 
 roommates = [Roommate("Seb", "+17072257532", [2, 3],[]),
              Roommate("Ed", "+17072878986", [3, 1],[]),
-             Roommate("Jake", "+15593080259", [3, 4],["Clean Shower","Wash all dishes"]),
+             Roommate("Jake", "+15593080259", [3, 4],[]),
              Roommate("Chase","+18053387701",[1,4] , [])]
 
 weeklyChores = ["Sweep/Mop Common Room",
                 "Wipe down kitchen counter and Stove", "Wipe Down Toilet",
-                "Remove old Food from fridge",
+                "Remove old Food from fridge","Sweep/Mop Kitchen",
                 "You got lucky no main chore!", "You got lucky no main chore!"]
 
 recurringChores = ["Take out Trash", "Organize the Common Room", "Wash all dishes",
                    "Put away clean dishes"]
 
-doneChores = ["Sweep/Mop Kitchen"]
+doneChores = []
 
 verificationlist = []  # list of roommates who have reccived verfication texts
 

@@ -165,7 +165,6 @@ if __name__ == "__main__":
     resetWeeklyChores()
     print("Starting Chron Job")
 
-    assignChore()
     while 1:
         date = datetime.datetime.today().weekday()
         schedule.run_pending()

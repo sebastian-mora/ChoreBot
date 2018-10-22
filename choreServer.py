@@ -8,9 +8,9 @@ import random
 import time
 
 roommates = [Roommate("Seb", "+***REMOVED***", [2, 3],[]),
-             Roommate("Ed", "+***REMOVED***", [3, 1],[]),
-             Roommate("Jake", "+***REMOVED***", [3, 4],["Clean Shower","Wash all dishes"]),
-             Roommate("Chase","+***REMOVED***",[1,4] , [])]
+             Roommate("Ed", "+***REMOVED***", [3, 0],[]),
+             Roommate("Jake", "+***REMOVED***", [3, 4],[]),
+             Roommate("Chase","+***REMOVED***",[0,4] , [])]
 
 weeklyChores = ["Sweep/Mop Common Room",
                 "Wipe down kitchen counter and Stove", "Wipe Down Toilet",
@@ -127,7 +127,7 @@ def sms_reply(sender, message_body):
                 sendVerification(roommate, sender)
                 if (roommate.number not in verificationlist):  # to prevent dups
                     verificationlist.append(roommate.number)
-                texter.sendMessage(sender.number, "Your request is being processed by your roommates")
+        texter.sendMessage(sender.number, "Your request is being processed by your roommates")
 
     elif ("yes" in message_body.lower() and sender.number in verificationlist):
         try:

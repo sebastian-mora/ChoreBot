@@ -10,17 +10,17 @@ import time
 roommates = [Roommate("Seb", "+17072257532", [2, 3],[]),
              Roommate("Ed", "+17072878986", [3, 0],["Sweep/Mop Common Room","Put away clean dishes"]),
              Roommate("Jake", "+15593080259", [3, 4],[]),
-             Roommate("Chase","+18053387701",[0,4] , ["You got lucky no main chore!","Take out Trash"])]
+             Roommate("Chase","+18053387701",[0,4] , [])]
 
 weeklyChores = [
                 "Wipe down kitchen counter and Stove", "Wipe Down Toilet",
                 "Remove old Food from fridge",
-                "You got lucky no main chore!"]
+                "You got lucky no main chore!","Sweep/Mop Kitchen"]
 
 recurringChores = ["Take out Trash", "Organize the Common Room", "Wash all dishes",
                    "Put away clean dishes"]
 
-doneChores = ["Sweep/Mop Kitchen"]
+doneChores = ["You got lucky no main chore!"]
 
 verificationlist = []  # list of roommates who have reccived verfication texts
 
@@ -36,6 +36,8 @@ texter = Texter(account_sid, auth_token, '+16506956346')
 # This method finds the roommates who signed up for the current weekday and randomly give them a chore
 def assignChore():
     for roommate in roommates:
+        randweekly = random.randint(0, len(weeklyChores) - 1)
+        randreurring = random.randint(0, len(recurringChores) - 1) #not the most eff
 
         if (roommate.chores):  # if roommate did not complete chore give it back to them and shame them
             shameMessage(roommate)
@@ -43,8 +45,7 @@ def assignChore():
 
         for workday in roommate.days:
 
-            randweekly = random.randint(0, len(weeklyChores) - 1)
-            randreurring = random.randint(0, len(recurringChores) - 1)
+
 
             if (workday == date):
                 print("%s IS getting a chore" % roommate.name)

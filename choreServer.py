@@ -8,19 +8,19 @@ import random
 import time
 
 roommates = [Roommate("Seb", "+17072257532", [2, 3],[]),
-             Roommate("Ed", "+17072878986", [3, 1],[]),
+             Roommate("Ed", "+17072878986", [3, 0],["Sweep/Mop Common Room","Put away clean dishes"]),
              Roommate("Jake", "+15593080259", [3, 4],[]),
-             Roommate("Chase","+18053387701",[1,4] , [])]
+             Roommate("Chase","+18053387701",[0,4] , ["You got lucky no main chore!","Take out Trash"])]
 
-weeklyChores = ["Sweep/Mop Common Room",
+weeklyChores = [
                 "Wipe down kitchen counter and Stove", "Wipe Down Toilet",
-                "Remove old Food from fridge","Sweep/Mop Kitchen",
-                "You got lucky no main chore!", "You got lucky no main chore!"]
+                "Remove old Food from fridge",
+                "You got lucky no main chore!"]
 
 recurringChores = ["Take out Trash", "Organize the Common Room", "Wash all dishes",
                    "Put away clean dishes"]
 
-doneChores = []
+doneChores = ["Sweep/Mop Kitchen"]
 
 verificationlist = []  # list of roommates who have reccived verfication texts
 
@@ -37,16 +37,16 @@ texter = Texter(account_sid, auth_token, '+16506956346')
 def assignChore():
     for roommate in roommates:
 
-        for day in roommate.days:
+        if (roommate.chores):  # if roommate did not complete chore give it back to them and shame them
+            shameMessage(roommate)
+            roommate.chores.append(recurringChores[randreurring])
 
-            if (day == date):
+        for workday in roommate.days:
 
-                if (roommate.chores):  # if roommate did not complete chore give it back to them and shame them
-                    shameMessage(roommate)
+            randweekly = random.randint(0, len(weeklyChores) - 1)
+            randreurring = random.randint(0, len(recurringChores) - 1)
 
-                randweekly = random.randint(0, len(weeklyChores) - 1)
-                randreurring = random.randint(0, len(recurringChores) - 1)
-
+            if (workday == date):
                 print("%s IS getting a chore" % roommate.name)
 
                 roommate.chores.append(weeklyChores[randweekly])
@@ -80,7 +80,8 @@ def notifyRoommatesStatus():
 
 def shameMessage(violator):
     for roommate in roommates:
-        message = "Your fellow roommate %s failed to complete his chore yesterday!" % violator.name
+        message = "Your fellow roommate %s failed to complete his chore yesterday! He's be " \
+                  "penalized with extra Chores!" % violator.name
         texter.sendMessage(roommate.number, message)
 
 
@@ -127,7 +128,7 @@ def sms_reply(sender, message_body):
                 sendVerification(roommate, sender)
                 if (roommate.number not in verificationlist):  # to prevent dups
                     verificationlist.append(roommate.number)
-                texter.sendMessage(sender.number, "Your request is being processed by your roommates")
+        texter.sendMessage(sender.number, "Your request is being processed by your roommates")
 
     elif ("yes" in message_body.lower() and sender.number in verificationlist):
         try:
@@ -154,8 +155,15 @@ def resetWeeklyChores():
     del doneChores[:]
     print("Reset status: " + str(weeklyChores) + " " + str(roommates))
 
+def sendReminder():
+    for roommate in roommates:
+        if (roommate.chores):
+            texter.sendMessage(roommate.name, "ChoreBot has noticed you haven't done your chores! And "
+                                               "so have your roommates!")
+
 
 schedule.every().day.at("9:30").do(assignChore)
+schedule.every().day.at("20:00").do(sendReminder)
 schedule.every().monday.do(resetWeeklyChores)
 
 if __name__ == "__main__":

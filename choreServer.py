@@ -41,7 +41,8 @@ def assignChore():
 
         if (roommate.chores):  # if roommate did not complete chore give it back to them and shame them
             shameMessage(roommate)
-            roommate.chores.append(recurringChores[randreurring])
+            roommate.chores.append(weeklyChores[randweekly])
+            del weeklyChores[randweekly]
 
         for workday in roommate.days:
 

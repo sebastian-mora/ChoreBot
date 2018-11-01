@@ -1,0 +1,15 @@
+{
+  "weeklyChores" : ["Sweep/Mop Common Room","Put away clean dishes", "Wipe down kitchen counter and Stove",
+                    "Wipe Down Toilet", "Remove old Food from fridge",
+                    "You got lucky no main chore!",
+                   "You got lucky no main chore!","Sweep/Mop Kitchen"],
+
+  "recurringChores" : ["Take out Trash", "Organize the Common Room", "Wash all dishes",
+                   "Put away clean dishes"],
+
+
+  "account_sid":  "AC6ca4c88efe5765fece8df0c5efb47c37",
+  "auth_token": "090e0eb4c5695b12007c86caaed97f31",
+
+  "twillo-number": "+16506956346"
+}

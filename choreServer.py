@@ -1,70 +1,44 @@
-import threading
-import schedule
 import datetime
-from Texter import Texter
-from Roommate import Roommate
-from flask import Flask, request
-import random
+import json
+import threading
 import time
 
-roommates = [Roommate("Seb", "+***REMOVED***", [2, 3],[]),
-             Roommate("Ed", "+***REMOVED***", [3, 0],["Sweep/Mop Common Room","Put away clean dishes"]),
-             Roommate("Jake", "+***REMOVED***", [3, 4],[]),
-             Roommate("Chase","+***REMOVED***",[0,4] , [])]
+import schedule
+from flask import Flask, request
 
-weeklyChores = [
-                "Wipe down kitchen counter and Stove", "Wipe Down Toilet",
-                "Remove old Food from fridge",
-                "You got lucky no main chore!","Sweep/Mop Kitchen"]
+from ChoreManager import ChoreManager
+from Roommate import Roommate
+from Texter import Texter
 
-recurringChores = ["Take out Trash", "Organize the Common Room", "Wash all dishes",
-                   "Put away clean dishes"]
+with open("config.json") as data_file:
+    data = json.load(data_file)
 
-doneChores = ["You got lucky no main chore!"]
+roommates = [Roommate("Seb", "+***REMOVED***", [2, 3], []),
+             Roommate("Ed", "+***REMOVED***", [3, 0], []),
+             Roommate("Jake", "+***REMOVED***", [3, 4], []),
+             Roommate("Chase", "+***REMOVED***", [0, 4], [])]
+
+ChoreManager(data["weeklyChores"], data["recurringChores"])
 
 verificationlist = []  # list of roommates who have reccived verfication texts
 
-date = datetime.datetime.today().weekday()
 app = Flask(__name__)
-
-account_sid = '***REMOVED***'
-auth_token = '***REMOVED***'
-
-texter = Texter(account_sid, auth_token, '+***REMOVED***')
+texter = Texter(data["account_sid"], data["auth_token"], data["twillo-number"])
 
 
 # This method finds the roommates who signed up for the current weekday and randomly give them a chore
 def assignChore():
     for roommate in roommates:
-        randweekly = random.randint(0, len(weeklyChores) - 1)
-        randreurring = random.randint(0, len(recurringChores) - 1) #not the most eff
-
         if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
             shameMessage(roommate)
-            roommate.chores.append(weeklyChores[randweekly])
-            del weeklyChores[randweekly]
+            roommate.chores.append(ChoreManager.giveRecurringChore())
 
         for workday in roommate.days:
-
-
-
             if (workday == date):
                 print("%s IS getting a chore" % roommate.name)
-
-                roommate.chores.append(weeklyChores[randweekly])
-                roommate.chores.append(recurringChores[randreurring])
-                del weeklyChores[randweekly]
+                roommate.chores.append(ChoreManager.giveWeeklyChore())
+                roommate.chores.append(ChoreManager.giveRecurringChore())
     notifyRoommatesStatus()
-    debug()
-
-
-def debug():
-    print "ROOMMATES \n"
-    print "\n".join([str(x) for x in roommates])
-    print "TODO CHORES\n"
-    print "\n".join([str(x) for x in weeklyChores])
-    print "DONE CHORES \n"
-    print "\n".join([str(x) for x in doneChores])
 
 
 # Sends message to all non-working roommates
@@ -72,7 +46,8 @@ def notifyRoommatesStatus():
     text = ""
     for roommate in roommates:
         if (roommate.chores):
-            text = text + "\n" + roommate.name + ": " + str(roommate.chores) + " " + unicode("\u274C ", 'unicode-escape')  # Red Check
+            text = text + "\n" + roommate.name + ": " + str(roommate.chores) + " " + unicode("\u274C ",
+                                                                                             'unicode-escape')  # Red Check
         else:
             text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape')  # Green Check
 
@@ -152,27 +127,21 @@ def sms_reply(sender, message_body):
                 verificationlist.remove(sender)
 
 
-def resetWeeklyChores():
-    weeklyChores.extend(doneChores)
-    del doneChores[:]
-    print("Reset status: " + str(weeklyChores) + " " + str(roommates))
-
 def sendReminder():
     for roommate in roommates:
         if (roommate.chores):
-            texter.sendMessage(roommate.name, "ChoreBot has noticed you haven't done your chores! And "
-                                               "so have your roommates!")
+            texter.sendMessage(roommate.number, "ChoreBot has noticed you haven't done your chores! And "
+                                                "so have your roommates!")
 
 
 schedule.every().day.at("9:30").do(assignChore)
 schedule.every().day.at("20:00").do(sendReminder)
-schedule.every().monday.do(resetWeeklyChores)
+schedule.every().monday.do(ChoreManager.resetWeeklyChores)
 
 if __name__ == "__main__":
     listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
     listener_thread.setDaemon(True)
     listener_thread.start()
-    resetWeeklyChores()
     print("Starting Chron Job")
 
     while 1:

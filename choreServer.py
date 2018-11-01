@@ -39,7 +39,7 @@ def assignChore():
         randweekly = random.randint(0, len(weeklyChores) - 1)
         randreurring = random.randint(0, len(recurringChores) - 1) #not the most eff
 
-        if (roommate.chores):  # if roommate did not complete chore give it back to them and shame them
+        if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
             shameMessage(roommate)
             roommate.chores.append(weeklyChores[randweekly])
             del weeklyChores[randweekly]

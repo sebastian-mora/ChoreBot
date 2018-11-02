@@ -132,7 +132,7 @@ def sendReminder():
 
 
 schedule.every().day.at(data["assign-chore-time"]).do(assignChore)
-schedule.every().day.at("chore-reminder-time").do(sendReminder)
+schedule.every().day.at(data["chore-reminder-time"]).do(sendReminder)
 schedule.every().monday.do(ChoreManager.resetWeeklyChores)
 
 if __name__ == "__main__":

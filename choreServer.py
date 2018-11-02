@@ -20,8 +20,6 @@ roommates = [Roommate("Seb", "+***REMOVED***", [2, 3], []),
 
 ChoreManager(data["weeklyChores"], data["recurringChores"])
 
-verificationlist = []  # list of roommates who have reccived verfication texts
-
 app = Flask(__name__)
 texter = Texter(data["account_sid"], data["auth_token"], data["twillo-number"])
 
@@ -63,8 +61,6 @@ def shameMessage(violator):
 
 
 def sendVerification(verifier, roommate):
-    verificationlist.append(verifier)
-
     message = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please respond (" \
               "YES %s) if he has completed their daily chores" % (
                   verifier.name, roommate.name, roommate.chores, roommate.name)
@@ -79,6 +75,7 @@ def sendVerification(verifier, roommate):
 # Starts flask server. On get it parses then calles sms_reply to handle the logic
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_listener():
+
     message_body = request.form['Body']
     number = request.form['From']
 
@@ -91,40 +88,40 @@ def sms_listener():
 
 
 def sms_reply(sender, message_body):
-    if (message_body.lower() == "done" and any(
-            roommate.number == sender.number for roommate in roommates)
-            and any(
-                roommate.chores == sender.chores for roommate in
-                roommates)):  # if the sender is a roommate and has chore
 
-        print(" %s Completed his chore requesting verification" % sender)
+    if (message_body.lower() == "done" and sender.chores): #if sender completeing chores
 
+        sender.completionPending = True;
+        print(" %s Completed his chore requesting verification" % sender.name)
         for roommate in roommates:
             if (roommate.number is not sender.number):
                 print("verification sent to %s", roommate.name)
                 sendVerification(roommate, sender)
-                if (roommate.number not in verificationlist):  # to prevent dups
-                    verificationlist.append(roommate.number)
+            else:
+                texter.sendMessage(sender.number, "Invalid Input :(")
+
         texter.sendMessage(sender.number, "Your request is being processed by your roommates")
 
-    elif ("yes" in message_body.lower() and sender.number in verificationlist):
+    elif ("yes" in message_body.lower()):
         try:
             name = message_body.split()
             name = name[1]
             if (not any(roommate.name.lower() == name.lower() for roommate in roommates)):  # if the name found is
                 # not a person doing chores
-
                 raise Exception
 
         except:
             texter.sendMessage(sender.number, "Invalid input please use the format (DONE NAME)")
 
         for roommate in roommates:
-            if (name.lower() == roommate.name.lower() and roommate.chores is not None):
+            if (name.lower() == roommate.name.lower() and roommate.completionPending and roommate is not sender):
+                # find roomate, check if they are waiting for veifi, make sure its not self veri
                 print("Confirmation for %s by %s" % (roommate.name, sender))
                 roommate.chores = []
+                roommate.completionPending = False;
                 notifyRoommatesStatus()
-                verificationlist.remove(sender)
+    else:
+        texter.sendMessage(sender.number, "Invalid input! Accepted input ""done"" or ""yes (roommate name)"" ")
 
 
 def sendReminder():
@@ -134,8 +131,8 @@ def sendReminder():
                                                 "so have your roommates!")
 
 
-schedule.every().day.at("9:30").do(assignChore)
-schedule.every().day.at("20:00").do(sendReminder)
+schedule.every().day.at(data["assign-chore-time"]).do(assignChore)
+schedule.every().day.at("chore-reminder-time").do(sendReminder)
 schedule.every().monday.do(ChoreManager.resetWeeklyChores)
 
 if __name__ == "__main__":

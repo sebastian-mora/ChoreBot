@@ -11,5 +11,8 @@
   "account_sid":  "AC6ca4c88efe5765fece8df0c5efb47c37",
   "auth_token": "090e0eb4c5695b12007c86caaed97f31",
 
-  "twillo-number": "+16506956346"
+  "twillo-number": "+16506956346",
+
+  "assign-chore-time":  "9:30",
+  "chore-reminder-time": "20:00"
 }

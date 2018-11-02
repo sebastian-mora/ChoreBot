@@ -6,6 +6,7 @@ class Roommate:
         self.number = number
         self.days = days
         self.chores = chores
+        self.completionPending = False;
 
 
     def getName(self):

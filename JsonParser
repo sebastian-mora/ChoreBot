@@ -1,0 +1,11 @@
+import json
+
+class JsonParser:
+
+    def __init__(self,data):
+        with open('data.json') as f:
+            self.data = json.load(f)
+
+
+    def parseApartments(self):
+        return 12

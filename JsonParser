@@ -8,4 +8,4 @@ class JsonParser:
 
 
     def parseApartments(self):
-        return 12
+        return 1

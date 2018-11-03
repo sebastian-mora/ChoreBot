@@ -9,5 +9,6 @@ class Apartment:
         self.choretime = choretime
         self.remindertime = remindertime
 
+
     def addRoommate(self,roommate):
         self.roommates.append(roommate)

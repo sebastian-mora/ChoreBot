@@ -1,4 +1,5 @@
 import json
+from Apartment import Apartment
 
 class JsonParser:
 
@@ -8,9 +9,21 @@ class JsonParser:
 
 
     def parseApartments(self):
-        i=0
-        while(self.data[i] is not None):
+        apartments = []
+        for i in range(0, int(self.data["len"])): #ghetto way
+           apt = "Apt_%d" % i
+           aptname =  self.data[apt]["Apt_name"]
+           roommates = self.data[apt]["roommates"]
+           weekleychores = self.data[apt]["chores"][0]
+           recchores = self.data[apt]["chores"][1]
+           choretime = self.data[apt]["assign-chore-time"]
+           remnindertime = self.data[apt]["chore-reminder-time"]
 
-           aptname =  self.data[i]["Apt_name"]
+
+           apartments.append(Apartment(aptname,roommates,weekleychores,recchores,choretime,remnindertime))
+
+        return  apartments
 
 
+    def test(self):
+        return self.data["Apt_0"]["chores"][0]

@@ -18,10 +18,11 @@ roommates = [Roommate("Seb", "+17072257532", [2, 3], []),
              Roommate("Jake", "+15593080259", [3, 4], []),
              Roommate("Chase", "+18053387701", [0, 4], [])]
 
-ChoreManager(data["weeklyChores"], data["recurringChores"])
+choremanager = ChoreManager(data["weeklyChores"], data["recurringChores"])
 
 app = Flask(__name__)
 texter = Texter(data["account_sid"], data["auth_token"], data["twillo-number"])
+date = datetime.datetime.today().weekday()
 
 
 # This method finds the roommates who signed up for the current weekday and randomly give them a chore
@@ -29,13 +30,13 @@ def assignChore():
     for roommate in roommates:
         if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
             shameMessage(roommate)
-            roommate.chores.append(ChoreManager.giveRecurringChore())
+            roommate.chores.append(choremanager.giveRecurringChore())
 
         for workday in roommate.days:
             if (workday == date):
                 print("%s IS getting a chore" % roommate.name)
-                roommate.chores.append(ChoreManager.giveWeeklyChore())
-                roommate.chores.append(ChoreManager.giveRecurringChore())
+                roommate.chores.append(choremanager.giveWeeklyChore())
+                roommate.chores.append(choremanager.giveRecurringChore())
     notifyRoommatesStatus()
 
 
@@ -133,13 +134,14 @@ def sendReminder():
 
 schedule.every().day.at(data["assign-chore-time"]).do(assignChore)
 schedule.every().day.at(data["chore-reminder-time"]).do(sendReminder)
-schedule.every().monday.do(ChoreManager.resetWeeklyChores)
+schedule.every().monday.do(choremanager.resetWeeklyChores)
 
 if __name__ == "__main__":
     listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
     listener_thread.setDaemon(True)
     listener_thread.start()
     print("Starting Chron Job")
+    assignChore()
 
     while 1:
         date = datetime.datetime.today().weekday()

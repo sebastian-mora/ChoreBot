@@ -14,3 +14,4 @@ class Apartment:
 
     def addRoommate(self,roommate):
         self.roommates.append(roommate)
+

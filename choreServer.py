@@ -7,18 +7,16 @@ import schedule
 from flask import Flask, request
 
 from ChoreManager import ChoreManager
-from Roommate import Roommate
 from Texter import Texter
+from Apartment import Apartment
+from JsonParser import JsonParser
 
 with open("config.json") as data_file:
     data = json.load(data_file)
 
-roommates = [Roommate("Seb", "+***REMOVED***", [2, 3], []),
-             Roommate("Ed", "+***REMOVED***", [3, 0], []),
-             Roommate("Jake", "+***REMOVED***", [3, 4], []),
-             Roommate("Chase", "+***REMOVED***", [0, 4], [])]
+jsonparser = JsonParser("data.json")
 
-ChoreManager(data["weeklyChores"], data["recurringChores"])
+apartments = jsonparser.parseApartments()
 
 app = Flask(__name__)
 texter = Texter(data["account_sid"], data["auth_token"], data["twillo-number"])
@@ -26,35 +24,38 @@ texter = Texter(data["account_sid"], data["auth_token"], data["twillo-number"])
 
 # This method finds the roommates who signed up for the current weekday and randomly give them a chore
 def assignChore():
-    for roommate in roommates:
-        if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
-            shameMessage(roommate)
-            roommate.chores.append(ChoreManager.giveRecurringChore())
 
-        for workday in roommate.days:
-            if (workday == date):
-                print("%s IS getting a chore" % roommate.name)
-                roommate.chores.append(ChoreManager.giveWeeklyChore())
+    for apartment in apartments:
+        for roommate in apartment.roommates:
+            if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
+                shameMessage(apartment,roommate)
                 roommate.chores.append(ChoreManager.giveRecurringChore())
-    notifyRoommatesStatus()
+
+            for workday in roommate.days:
+                if (workday == date):
+                    print("%s IS getting a chore" % roommate.name)
+                    roommate.chores.append(ChoreManager.giveWeeklyChore())
+                    roommate.chores.append(ChoreManager.giveRecurringChore())
+        notifyRoommatesStatus(apartment)
 
 
 # Sends message to all non-working roommates
-def notifyRoommatesStatus():
+#TODO reduce this mehtod
+def notifyRoommatesStatus(apartment):
     text = ""
-    for roommate in roommates:
+    for roommate in apartment.roommates:
         if (roommate.chores):
             text = text + "\n" + roommate.name + ": " + str(roommate.chores) + " " + unicode("\u274C ",
                                                                                              'unicode-escape')  # Red Check
         else:
             text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape')  # Green Check
 
-    for roommate in roommates:
+    for roommate in apartment.roommates:
         texter.sendMessage(roommate.number, text)
 
 
-def shameMessage(violator):
-    for roommate in roommates:
+def shameMessage(apartment,violator):
+    for roommate in apartment.roommates:
         message = "Your fellow roommate %s failed to complete his chore yesterday! He's be " \
                   "penalized with extra Chores!" % violator.name
         texter.sendMessage(roommate.number, message)

@@ -15,6 +15,7 @@
                   {"name": "Ed", "number": "+17072878986", "days":["0","3"], "chores":[],"completionPending": "False"},
                   {"name": "Jake", "number": "+15593080259", "days":["3","4"], "chores":[],"completionPending": "False"},
                   {"name": "Chase", "number": "+18053387701", "days":["0","4"], "chores":[],"completionPending": "False"}
+
                   ],
     "chores": [
       {

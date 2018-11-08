@@ -15,6 +15,7 @@
                   {"name": "Ed", "number": "+***REMOVED***", "days":["0","3"], "chores":[],"completionPending": "False"},
                   {"name": "Jake", "number": "+***REMOVED***", "days":["3","4"], "chores":[],"completionPending": "False"},
                   {"name": "Chase", "number": "+***REMOVED***", "days":["0","4"], "chores":[],"completionPending": "False"}
+
                   ],
     "chores": [
       {

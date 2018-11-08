@@ -17,6 +17,7 @@ with open("config.json") as data_file:
 jsonparser = JsonParser("data.json")
 
 apartments = jsonparser.parseApartments()
+date = datetime.datetime.today().weekday()
 
 app = Flask(__name__)
 texter = Texter(data["account_sid"], data["auth_token"], data["twillo-number"])
@@ -29,13 +30,13 @@ def assignChore():
         for roommate in apartment.roommates:
             if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
                 shameMessage(apartment,roommate)
-                roommate.chores.append(ChoreManager.giveRecurringChore())
+                roommate.chores.append(apartment.choremanager.giveWeeklyChore())
 
             for workday in roommate.days:
                 if (workday == date):
                     print("%s IS getting a chore" % roommate.name)
-                    roommate.chores.append(ChoreManager.giveWeeklyChore())
-                    roommate.chores.append(ChoreManager.giveRecurringChore())
+                    roommate.chores.append(apartment.choremanager.giveWeeklyChore())
+                    roommate.chores.append(apartment.choremanager.giveWeeklyChore())
         notifyRoommatesStatus(apartment)
 
 
@@ -90,6 +91,7 @@ def sms_listener():
 
 def sms_reply(apartment ,sender, message_body):
 
+    print "From: %d in apt %d - %d" % (sender.name, apartment.aptname,message_body)
     if (message_body.lower() == "done" and sender.chores): #if sender completeing chores
 
         sender.completionPending = True;
@@ -133,14 +135,25 @@ def sendReminder():
                                                     "so have your roommates!")
 
 
-schedule.every().day.at(data["assign-chore-time"]).do(assignChore)
-schedule.every().day.at("chore-reminder-time").do(sendReminder)
-schedule.every().monday.do(ChoreManager.resetWeeklyChores)
+
+#TODO Make Scheduler pass apartment into needed methods
+def scheduler():
+    for apartment in apartments:
+        schedule.every().day.at(apartment.choretime.do(assignChore))
+        schedule.every().days.at(apartment.remindertime).do(sendReminder)
+        schedule.every().monday.do(ApartmentReset)
+
+def ApartmentReset():
+    for apartment in apartments:
+        apartment.choremanager.resetWeeklyChores()
+
+
 
 if __name__ == "__main__":
     listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
     listener_thread.setDaemon(True)
     listener_thread.start()
+    assignChore()
     print("Starting Chron Job")
 
     while 1:

@@ -79,22 +79,22 @@ def sms_listener():
 
     message_body = request.form['Body']
     number = request.form['From']
+    for apartment in apartments:
+        for roommate in apartment.roommates:
+            if (roommate.number == number):
+                sender = roommate
 
-    for roommate in roommates:
-        if (roommate.number == number):
-            sender = roommate
-
-    sms_reply(sender, message_body)
+    sms_reply(apartment,sender, message_body)
     return str("OK")
 
 
-def sms_reply(sender, message_body):
+def sms_reply(apartment ,sender, message_body):
 
     if (message_body.lower() == "done" and sender.chores): #if sender completeing chores
 
         sender.completionPending = True;
         print(" %s Completed his chore requesting verification" % sender.name)
-        for roommate in roommates:
+        for roommate in apartment.roommates:
             if (roommate.number is not sender.number):
                 print("verification sent to %s", roommate.name)
                 sendVerification(roommate, sender)
@@ -107,14 +107,14 @@ def sms_reply(sender, message_body):
         try:
             name = message_body.split()
             name = name[1]
-            if (not any(roommate.name.lower() == name.lower() for roommate in roommates)):  # if the name found is
+            if (not any(roommate.name.lower() == name.lower() for roommate in apartment.roommates)):  # if the name found is
                 # not a person doing chores
                 raise Exception
 
         except:
             texter.sendMessage(sender.number, "Invalid input please use the format (DONE NAME)")
 
-        for roommate in roommates:
+        for roommate in apartment.roommates:
             if (name.lower() == roommate.name.lower() and roommate.completionPending and roommate is not sender):
                 # find roomate, check if they are waiting for veifi, make sure its not self veri
                 print("Confirmation for %s by %s" % (roommate.name, sender))
@@ -126,10 +126,11 @@ def sms_reply(sender, message_body):
 
 
 def sendReminder():
-    for roommate in roommates:
-        if (roommate.chores):
-            texter.sendMessage(roommate.number, "ChoreBot has noticed you haven't done your chores! And "
-                                                "so have your roommates!")
+    for apartment in apartments:
+        for roommate in apartment.roommates:
+            if (roommate.chores):
+                texter.sendMessage(roommate.number, "ChoreBot has noticed you haven't done your chores! And "
+                                                    "so have your roommates!")
 
 
 schedule.every().day.at(data["assign-chore-time"]).do(assignChore)

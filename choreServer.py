@@ -101,8 +101,6 @@ def sms_reply(apartment, sender, message_body):
             if (roommate.number is not sender.number):
                 print("verification sent to %s", roommate.name)
                 sendVerification(roommate, sender)
-            else:
-                texter.sendMessage(sender.number, "Invalid Input :(")
 
         texter.sendMessage(sender.number, "Your request is being processed by your roommates")
 

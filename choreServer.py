@@ -121,7 +121,7 @@ def sms_reply(apartment, sender, message_body):
                 print("Confirmation for %s by %s" % (roommate.name, sender))
                 roommate.chores = []
                 roommate.completionPending = False;
-                notifyRoommatesStatus()
+                notifyRoommatesStatus(apartment) #TODO make it pass roommates for better runtime
     else:
         texter.sendMessage(sender.number, "Invalid input! Accepted input \"done\" or \"yes (roommate name)\" ")
 

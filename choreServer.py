@@ -85,7 +85,7 @@ def sms_listener():
             if (roommate.number == number):
                 sender = roommate
 
-    sms_reply(apartment, sender, message_body)
+    sms_reply(apartment, sender, message_body.lower())
     return str("OK")
 
 
@@ -123,7 +123,7 @@ def sms_reply(apartment, sender, message_body):
                 roommate.completionPending = False;
                 notifyRoommatesStatus()
     else:
-        texter.sendMessage(sender.number, "Invalid input! Accepted input ""done"" or ""yes (roommate name)"" ")
+        texter.sendMessage(sender.number, "Invalid input! Accepted input \"done\" or \"yes (roommate name)\" ")
 
 
 def sendReminder():

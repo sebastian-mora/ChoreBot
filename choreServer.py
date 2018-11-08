@@ -85,13 +85,14 @@ def sms_listener():
             if (roommate.number == number):
                 sender = roommate
 
-    sms_reply(apartment,sender, message_body)
+    sms_reply(apartment, sender, message_body)
     return str("OK")
 
 
-def sms_reply(apartment ,sender, message_body):
+def sms_reply(apartment, sender, message_body):
 
-    print "From: %d in apt %d - %d" % (sender.name, apartment.aptname,message_body)
+    print "From: %s in apt %s - %s" % (sender.name, apartment.aptname, message_body)
+
     if (message_body.lower() == "done" and sender.chores): #if sender completeing chores
 
         sender.completionPending = True;

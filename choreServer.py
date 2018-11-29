@@ -7,18 +7,18 @@ import schedule
 from flask import Flask, request
 
 from ChoreManager import ChoreManager
-from Roommate import Roommate
 from Texter import Texter
+from Apartment import Apartment
+from JsonParser import JsonParser
 
 with open("config.json") as data_file:
     data = json.load(data_file)
 
-roommates = [Roommate("Seb", "+***REMOVED***", [2, 3], []),
-             Roommate("Ed", "+***REMOVED***", [3, 0], []),
-             Roommate("Jake", "+***REMOVED***", [3, 4], []),
-             Roommate("Chase", "+***REMOVED***", [0, 4], [])]
+jsonparser = JsonParser("data.json")
+t
+apartments = jsonparser.parseApartments()
+date = datetime.datetime.today().weekday()
 
-choremanager = ChoreManager(data["weeklyChores"], data["recurringChores"])
 
 app = Flask(__name__)
 texter = Texter(data["account_sid"], data["auth_token"], data["twillo-number"])
@@ -27,35 +27,38 @@ date = datetime.datetime.today().weekday()
 
 # This method finds the roommates who signed up for the current weekday and randomly give them a chore
 def assignChore():
-    for roommate in roommates:
-        if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
-            shameMessage(roommate)
-            roommate.chores.append(choremanager.giveRecurringChore())
+    for apartment in apartments:
+        for roommate in apartment.roommates:
+            if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
+                shameMessage(apartment,roommate)
+                roommate.chores.append(apartment.choremanager.giveWeeklyChore())
 
-        for workday in roommate.days:
-            if (workday == date):
-                print("%s IS getting a chore" % roommate.name)
-                roommate.chores.append(choremanager.giveWeeklyChore())
-                roommate.chores.append(choremanager.giveRecurringChore())
-    notifyRoommatesStatus()
+            for workday in roommate.days:
+                if (workday == date):
+                    print("%s IS getting a chore" % roommate.name)
+                    roommate.chores.append(apartment.choremanager.giveWeeklyChore())
+                    roommate.chores.append(apartment.choremanager.giveWeeklyChore())
+        notifyRoommatesStatus(apartment)
+
 
 
 # Sends message to all non-working roommates
-def notifyRoommatesStatus():
+#TODO reduce this mehtod
+def notifyRoommatesStatus(apartment):
     text = ""
-    for roommate in roommates:
+    for roommate in apartment.roommates:
         if (roommate.chores):
             text = text + "\n" + roommate.name + ": " + str(roommate.chores) + " " + unicode("\u274C ",
                                                                                              'unicode-escape')  # Red Check
         else:
             text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape')  # Green Check
 
-    for roommate in roommates:
+    for roommate in apartment.roommates:
         texter.sendMessage(roommate.number, text)
 
 
-def shameMessage(violator):
-    for roommate in roommates:
+def shameMessage(apartment,violator):
+    for roommate in apartment.roommates:
         message = "Your fellow roommate %s failed to complete his chore yesterday! He's be " \
                   "penalized with extra Chores!" % violator.name
         texter.sendMessage(roommate.number, message)
@@ -79,27 +82,27 @@ def sms_listener():
 
     message_body = request.form['Body']
     number = request.form['From']
+    for apartment in apartments:
+        for roommate in apartment.roommates:
+            if (roommate.number == number):
+                sender = roommate
 
-    for roommate in roommates:
-        if (roommate.number == number):
-            sender = roommate
-
-    sms_reply(sender, message_body)
+    sms_reply(apartment, sender, message_body.lower())
     return str("OK")
 
 
-def sms_reply(sender, message_body):
+def sms_reply(apartment, sender, message_body):
+
+    print "From: %s in apt %s - %s" % (sender.name, apartment.aptname, message_body)
 
     if (message_body.lower() == "done" and sender.chores): #if sender completeing chores
 
         sender.completionPending = True;
         print(" %s Completed his chore requesting verification" % sender.name)
-        for roommate in roommates:
+        for roommate in apartment.roommates:
             if (roommate.number is not sender.number):
                 print("verification sent to %s", roommate.name)
                 sendVerification(roommate, sender)
-            else:
-                texter.sendMessage(sender.number, "Invalid Input :(")
 
         texter.sendMessage(sender.number, "Your request is being processed by your roommates")
 
@@ -107,39 +110,51 @@ def sms_reply(sender, message_body):
         try:
             name = message_body.split()
             name = name[1]
-            if (not any(roommate.name.lower() == name.lower() for roommate in roommates)):  # if the name found is
+            if (not any(roommate.name.lower() == name.lower() for roommate in apartment.roommates)):  # if the name found is
                 # not a person doing chores
                 raise Exception
 
         except:
             texter.sendMessage(sender.number, "Invalid input please use the format (DONE NAME)")
 
-        for roommate in roommates:
+        for roommate in apartment.roommates:
             if (name.lower() == roommate.name.lower() and roommate.completionPending and roommate is not sender):
                 # find roomate, check if they are waiting for veifi, make sure its not self veri
                 print("Confirmation for %s by %s" % (roommate.name, sender))
                 roommate.chores = []
                 roommate.completionPending = False;
-                notifyRoommatesStatus()
+                notifyRoommatesStatus(apartment) #TODO make it pass roommates for better runtime
     else:
-        texter.sendMessage(sender.number, "Invalid input! Accepted input ""done"" or ""yes (roommate name)"" ")
+        texter.sendMessage(sender.number, "Invalid input! Accepted input \"done\" or \"yes (roommate name)\" ")
 
 
 def sendReminder():
-    for roommate in roommates:
-        if (roommate.chores):
-            texter.sendMessage(roommate.number, "ChoreBot has noticed you haven't done your chores! And "
-                                                "so have your roommates!")
+    for apartment in apartments:
+        for roommate in apartment.roommates:
+            if (roommate.chores):
+                texter.sendMessage(roommate.number, "ChoreBot has noticed you haven't done your chores! And "
+                                                    "so have your roommates!")
 
 
-schedule.every().day.at(data["assign-chore-time"]).do(assignChore)
-schedule.every().day.at(data["chore-reminder-time"]).do(sendReminder)
-schedule.every().monday.do(choremanager.resetWeeklyChores)
+
+#TODO Make Scheduler pass apartment into needed methods
+def scheduler():
+    for apartment in apartments:
+        schedule.every().day.at(apartment.choretime.do(assignChore))
+        schedule.every().days.at(apartment.remindertime).do(sendReminder)
+        schedule.every().monday.do(ApartmentReset)
+
+def ApartmentReset():
+    for apartment in apartments:
+        apartment.choremanager.resetWeeklyChores()
+
+
 
 if __name__ == "__main__":
     listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
     listener_thread.setDaemon(True)
     listener_thread.start()
+    assignChore()
     print("Starting Chron Job")
     assignChore()
 

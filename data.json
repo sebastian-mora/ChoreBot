@@ -1,0 +1,36 @@
+{
+
+  "len" : "1",
+
+  "Apt_0": {
+
+    "Apt_name": "Cuck Boys",
+
+    "twillo-number": "+16506956346",
+
+    "assign-chore-time":  "9:30",
+    "chore-reminder-time": "20:00",
+
+    "roommates": [{"name": "Seb", "number": "+17072257532", "days":["2","3"], "chores":[],"completionPending": "False"},
+                  {"name": "Ed", "number": "+17072878986", "days":["0","3"], "chores":[],"completionPending": "False"},
+                  {"name": "Jake", "number": "+15593080259", "days":["3","4"], "chores":[],"completionPending": "False"},
+                  {"name": "Chase", "number": "+18053387701", "days":["0","4"], "chores":[],"completionPending": "False"}
+
+                  ],
+    "chores": [
+      {
+        "weekly_chores": ["Sweep/Mop Common Room","Put away clean dishes", "Wipe down kitchen counter and Stove",
+                          "Wipe Down Toilet", "Remove old Food from fridge",  "You got lucky no main chore!",
+                          "You got lucky no main chore!","Sweep/Mop Kitchen"],
+
+        "recurring_chores": ["Take out Trash", "Organize the Common Room", "Wash all dishes",
+                             "Put away clean dishes"],
+        "done_chores": []
+      }
+    ]
+
+
+  }
+
+
+}

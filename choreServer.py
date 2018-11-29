@@ -15,17 +15,18 @@ with open("config.json") as data_file:
     data = json.load(data_file)
 
 jsonparser = JsonParser("data.json")
-
+t
 apartments = jsonparser.parseApartments()
 date = datetime.datetime.today().weekday()
 
+
 app = Flask(__name__)
 texter = Texter(data["account_sid"], data["auth_token"], data["twillo-number"])
+date = datetime.datetime.today().weekday()
 
 
 # This method finds the roommates who signed up for the current weekday and randomly give them a chore
 def assignChore():
-
     for apartment in apartments:
         for roommate in apartment.roommates:
             if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
@@ -38,6 +39,7 @@ def assignChore():
                     roommate.chores.append(apartment.choremanager.giveWeeklyChore())
                     roommate.chores.append(apartment.choremanager.giveWeeklyChore())
         notifyRoommatesStatus(apartment)
+
 
 
 # Sends message to all non-working roommates
@@ -154,6 +156,7 @@ if __name__ == "__main__":
     listener_thread.start()
     assignChore()
     print("Starting Chron Job")
+    assignChore()
 
     while 1:
         date = datetime.datetime.today().weekday()

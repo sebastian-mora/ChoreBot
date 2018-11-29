@@ -140,7 +140,7 @@ def sendReminder():
 #TODO Make Scheduler pass apartment into needed methods
 def scheduler():
     for apartment in apartments:
-        schedule.every().day.at(apartment.choretime.do(assignChore))
+        schedule.every().day.at(apartment.choretime).do(assignChore)
         schedule.every().days.at(apartment.remindertime).do(sendReminder)
         schedule.every().monday.do(ApartmentReset)
 

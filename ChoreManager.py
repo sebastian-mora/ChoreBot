@@ -19,8 +19,12 @@ class ChoreManager:
         chore = self.weeklyChores[rand]
         return chore
 
-    def completeChore(self, chore):
-        self.doneChores.append(chore)
+    def completeChores(self, chores):
+
+        for chore in chores:
+            if chore in self.weeklyChores:
+                self.doneChores.append(chore)
+                del self.weeklyChores[self.weeklyChores.index(chore)]
 
     def resetWeeklyChores(self):
         self.weeklyChores.extend(self.doneChores)

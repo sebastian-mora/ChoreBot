@@ -44,3 +44,6 @@ class JsonParser:
 
             roommates.append(Roommate(name,number,days,chores))
         return roommates
+
+
+    #TODO Write Save State Method

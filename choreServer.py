@@ -4,18 +4,16 @@ import threading
 import time
 
 import schedule
-from flask import Flask, request
 
-from ChoreManager import ChoreManager
+from flask import Flask, request
 from Texter import Texter
-from Apartment import Apartment
 from JsonParser import JsonParser
 
 with open("config.json") as data_file:
     data = json.load(data_file)
 
 jsonparser = JsonParser("data.json")
-t
+
 apartments = jsonparser.parseApartments()
 date = datetime.datetime.today().weekday()
 
@@ -121,9 +119,10 @@ def sms_reply(apartment, sender, message_body):
             if (name.lower() == roommate.name.lower() and roommate.completionPending and roommate is not sender):
                 # find roomate, check if they are waiting for veifi, make sure its not self veri
                 print("Confirmation for %s by %s" % (roommate.name, sender))
+                notifyRoommatesStatus(apartment) #TODO make it pass roommates for better runtime
+                apartment.choremanager.completeChore(roommate.chores)
                 roommate.chores = []
                 roommate.completionPending = False;
-                notifyRoommatesStatus(apartment) #TODO make it pass roommates for better runtime
     else:
         texter.sendMessage(sender.number, "Invalid input! Accepted input \"done\" or \"yes (roommate name)\" ")
 

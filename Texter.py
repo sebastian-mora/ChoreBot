@@ -91,4 +91,4 @@ class Texter:
                 "respond (YES %s) if he has completed their daily chores" % (
                     verifier.name, roommate.name, roommate.chores, roommate.name))
 
-        self.sendMessage(verifier.number, message)
+        self.sendMessage(verifier.number, message,image)

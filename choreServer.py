@@ -28,7 +28,7 @@ def assignChore():
                     print("%s IS getting a chore" % roommate.name)
                     roommate.chores.append(apartment.choremanager.giveWeeklyChore())
                     roommate.chores.append(apartment.choremanager.giveWeeklyChore())
-        texter.notifyRoommatesStatus(apartment)
+        texter.notifyRoommatesStatus(apartment.roommates)
 
 
 # Starts flask server. On get it parses then calles sms_reply to handle the logic

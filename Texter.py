@@ -3,6 +3,7 @@ import datetime
 
 
 class Texter:
+
     account_sid = None
     auth_token = None
     number = None
@@ -35,3 +36,34 @@ class Texter:
             from_=self.number,
             to=roommate.number
         )
+
+    # Sends message to all non-working roommates
+    # TODO reduce this mehtod
+    def notifyRoommatesStatus(self,apartment):
+        text = ""
+        for roommate in apartment.roommates:
+            if (roommate.chores):
+                text = text + "\n" + roommate.name + ": " + str(roommate.chores) + " " + unicode("\u274C ",
+                                                                                                 'unicode-escape')  # Red Check
+            else:
+                text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape')  # Green Check
+
+        for roommate in apartment.roommates:
+            self.sendMessage(roommate.number, text)
+
+    def shameMessage(self, apartment, violator):
+        for roommate in apartment.roommates:
+            message = "Your fellow roommate %s failed to complete his chore yesterday! He's be " \
+                      "penalized with extra Chores!" % violator.name
+            self.sendMessage(roommate.number, message)
+
+    def sendVerification(self, verifier, roommate):
+        message = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please respond (" \
+                  "YES %s) if he has completed their daily chores" % (
+                      verifier.name, roommate.name, roommate.chores, roommate.name)
+        print(
+                "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please "
+                "respond (YES %s) if he has completed their daily chores" % (
+                    verifier.name, roommate.name, roommate.chores, roommate.name))
+
+        self.sendMessage(verifier.number, message)

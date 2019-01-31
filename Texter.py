@@ -53,12 +53,9 @@ class Texter:
         print(
                 "%s \n Good Morning %s! \n The chore that you have been assigned today is: \n %s \n please respond "
                 "DONE when you have completed the chore." % (date, roommate.name, roommate.chore))
-        message = self.client.messages \
-            .create(
-            body=text,
-            from_=self.number,
-            to=roommate.number
-        )
+
+        self.sendMessage(roommate.number,text,None)
+
 
     # Sends message to all non-working roommates
     # TODO reduce this mehtod
@@ -73,13 +70,13 @@ class Texter:
                 text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape')  # Green Check
 
         for roommate in roommates:
-            self.sendMessage(roommate.number, text)
+            self.sendMessage(roommate.number, text,None)
 
     def shameMessage(self, apartment, violator):
         for roommate in apartment.roommates:
             message = "Your fellow roommate %s failed to complete his chore yesterday! He's be " \
                       "penalized with extra Chores!" % violator.name
-            self.sendMessage(roommate.number, message)
+            self.sendMessage(roommate.number, message,None)
 
     def sendVerification(self, verifier, roommate,image):
         message = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  " \

@@ -84,7 +84,7 @@ def sms_reply(apartment, sender, message_body):
                 # find roomate, check if they are waiting for veifi, make sure its not self veri
                 print("Confirmation for %s by %s" % (roommate.name, sender))
                 texter.notifyRoommatesStatus(apartment)  # TODO make it pass roommates for better runtime
-                apartment.choremanager.completeChore(roommate.chores)
+                apartment.choremanager.completeChores(roommate.chores)
                 roommate.chores = []
                 roommate.completionPending = False;
     else:

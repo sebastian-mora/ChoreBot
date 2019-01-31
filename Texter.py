@@ -15,12 +15,35 @@ class Texter:
         self.number = number
         self.client = Client(account_sid, auth_token)
 
-    def sendMessage(self, reccivernumber, message):
-        message = self.client.messages \
-            .create(
-            body=message,
-            from_=self.number,
-            to=reccivernumber)
+    def sendMessage(self, receiver, message, image):
+
+        if(image is None):
+
+            message = self.client.messages \
+                .create(
+                body=message,
+                from_=self.number,
+                to=receiver)
+        else:
+            message = self.client.messages \
+                .create(
+                body=message,
+                media_url= image,
+                from_=self.number,
+                to=receiver)
+
+
+    def sendMessageAll(self, roommates, message, image):
+
+        for roommate in roommates:
+
+            message = self.client.messages \
+                .create(
+                body=message,
+                media_url= image,
+                from_=self.number,
+                to=roommate.number)
+
 
     def sendChore(self, roommate):
         date = datetime.datetime.today().weekday()
@@ -39,16 +62,17 @@ class Texter:
 
     # Sends message to all non-working roommates
     # TODO reduce this mehtod
-    def notifyRoommatesStatus(self,apartment):
-        text = ""
-        for roommate in apartment.roommates:
+    def notifyRoommatesStatus(self,roommates):
+        text = "To complete your chore please type done! It is preferred that you add a picture to aid in the " \
+               "verification process. \n"
+        for roommate in roommates:
             if (roommate.chores):
                 text = text + "\n" + roommate.name + ": " + str(roommate.chores) + " " + unicode("\u274C ",
                                                                                                  'unicode-escape')  # Red Check
             else:
                 text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape')  # Green Check
 
-        for roommate in apartment.roommates:
+        for roommate in roommates:
             self.sendMessage(roommate.number, text)
 
     def shameMessage(self, apartment, violator):
@@ -57,8 +81,9 @@ class Texter:
                       "penalized with extra Chores!" % violator.name
             self.sendMessage(roommate.number, message)
 
-    def sendVerification(self, verifier, roommate):
-        message = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please respond (" \
+    def sendVerification(self, verifier, roommate,image):
+        message = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  " \
+                  "Please respond (" \
                   "YES %s) if he has completed their daily chores" % (
                       verifier.name, roommate.name, roommate.chores, roommate.name)
         print(

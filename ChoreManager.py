@@ -2,9 +2,9 @@ import random
 
 class ChoreManager:
 
-    def __init__(self,weeklyChores,recurringChores):
+    def __init__(self, weeklyChores, recurringChores):
         self.weeklyChores = weeklyChores
-        self.recurringChores =recurringChores;
+        self.recurringChores = recurringChores;
         self.doneChores = []
 
 

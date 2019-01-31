@@ -1,23 +1,17 @@
 import datetime
-import json
 import threading
 import time
-
 import schedule
-
 from flask import Flask, request
 from Texter import Texter
 from JsonParser import JsonParser
-
-with open("config.json") as data_file:
-    data = json.load(data_file)
 
 jsonparser = JsonParser("data.json")
 
 apartments = jsonparser.parseApartments()
 
 app = Flask(__name__)
-texter = Texter(data["account_sid"], data["auth_token"], data["twillo-number"])
+texter = Texter("***REMOVED***", "***REMOVED***", "+***REMOVED***")
 date = datetime.datetime.today().weekday()
 
 
@@ -37,25 +31,25 @@ def assignChore():
         texter.notifyRoommatesStatus(apartment)
 
 
-
 # Starts flask server. On get it parses then calles sms_reply to handle the logic
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_listener():
     message_body = request.form['Body']
     number = request.form['From']
+    image_url = request.form['MediaUrl0']
     for apartment in apartments:
         for roommate in apartment.roommates:
             if roommate.number == number:
                 sender = roommate
 
-    sms_reply(apartment, sender, message_body.lower())
+    sms_reply(apartment, sender, message_body.lower(), image_url)
     return str("OK")
 
 
-def sms_reply(apartment, sender, message_body):
+def sms_reply(apartment, sender, message_body, image_url):
     print "From: %s in apt %s - %s" % (sender.name, apartment.aptname, message_body)
 
-    if message_body.lower() == "done" and sender.chores:  # if sender completeing chores
+    if message_body.lower() == "done" and sender.chores:  # if sender wants to complete chores
 
         sender.completionPending = True;
         print(" %s Completed his chore requesting verification" % sender.name)
@@ -64,9 +58,9 @@ def sms_reply(apartment, sender, message_body):
                 print("verification sent to %s", roommate.name)
                 texter.sendVerification(roommate, sender)
 
-        texter.sendMessage(sender.number, "Your request is being processed by your roommates")
+        texter.sendMessage(sender.number, "Your request is being processed by your roommates", None)
 
-    elif ("yes" in message_body.lower()):
+    elif ("yes" in message_body.lower()):  # if roommate verifies chores or done
         try:
             name = message_body.split()
             name = name[1]
@@ -77,18 +71,25 @@ def sms_reply(apartment, sender, message_body):
                 raise Exception
 
         except:
-            texter.sendMessage(sender.number, "Invalid input please use the format (DONE NAME)")
+            texter.sendMessage(sender.number, "Invalid input please use the format (DONE NAME)", None)
 
-        for roommate in apartment.roommates:
+        for roommate in apartment.roommates:  # find the person who verified them
             if (name.lower() == roommate.name.lower() and roommate.completionPending and roommate is not sender):
                 # find roomate, check if they are waiting for veifi, make sure its not self veri
                 print("Confirmation for %s by %s" % (roommate.name, sender))
-                texter.notifyRoommatesStatus(apartment)  # TODO make it pass roommates for better runtime
+                texter.notifyRoommatesStatus(apartment.roommates)
                 apartment.choremanager.completeChores(roommate.chores)
                 roommate.chores = []
                 roommate.completionPending = False;
+
+    elif (message_body is None and image_url is not None):  # if picture is sent after initial verification text
+        if (sender.completionPending):
+            roommates = apartment.roommates
+            del roommates[sender]  # remove sender from list
+            texter.sendMessageAll(roommates, "", image_url)
+
     else:
-        texter.sendMessage(sender.number, "Invalid input! Accepted input \"done\" or \"yes (roommate name)\" ")
+        texter.sendMessage(sender.number, "Invalid input! Accepted input \"done\" or \"yes (roommate name)\" ", None)
 
 
 def sendReminder():
@@ -96,7 +97,7 @@ def sendReminder():
         for roommate in apartment.roommates:
             if (roommate.chores):
                 texter.sendMessage(roommate.number, "ChoreBot has noticed you haven't done your chores! And "
-                                                    "so have your roommates!")
+                                                    "so have your roommates!", None)
 
 
 # TODO Make Scheduler pass apartment into needed methods

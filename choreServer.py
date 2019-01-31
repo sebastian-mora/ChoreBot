@@ -27,7 +27,7 @@ def assignChore():
                 if (workday == date):
                     print("%s IS getting a chore" % roommate.name)
                     roommate.chores.append(apartment.choremanager.giveWeeklyChore())
-                    roommate.chores.append(apartment.choremanager.giveWeeklyChore())
+                    roommate.chores.append(apartment.choremanager.giveRecurringChore())
         texter.notifyRoommatesStatus(apartment.roommates)
 
 
@@ -119,7 +119,6 @@ if __name__ == "__main__":
     listener_thread.start()
     assignChore()
     print("Starting Chron Job")
-    assignChore()
 
     while 1:
         date = datetime.datetime.today().weekday()

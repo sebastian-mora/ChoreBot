@@ -117,7 +117,6 @@ if __name__ == "__main__":
     listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
     listener_thread.setDaemon(True)
     listener_thread.start()
-    assignChore()
     print("Starting Chron Job")
 
     while 1:

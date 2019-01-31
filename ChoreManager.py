@@ -9,15 +9,17 @@ class ChoreManager:
 
 
     def giveWeeklyChore(self):
-        rand = random.randint(0, len(self.weeklyChores) - 1)
-        chore = self.weeklyChores[rand]
-        del self.weeklyChores[rand]
-        return chore
+        if(self.weeklyChores):
+            rand = random.randint(0, len(self.weeklyChores) - 1)
+            chore = self.weeklyChores[rand]
+            del self.weeklyChores[rand]
+            return chore
 
     def giveRecurringChore(self):
-        rand = random.randint(0, len(self.recurringChores) - 1)
-        chore = self.weeklyChores[rand]
-        return chore
+        if(self.recurringChores):
+            rand = random.randint(0, len(self.recurringChores) - 1)
+            chore = self.recurringChores[rand]
+            return chore
 
     def completeChores(self, chores):
 

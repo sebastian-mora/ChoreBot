@@ -37,6 +37,7 @@ def assignChore():
         texter.notifyRoommatesStatus(apartment)
 
 
+
 # Starts flask server. On get it parses then calles sms_reply to handle the logic
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_listener():

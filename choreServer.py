@@ -37,10 +37,13 @@ def sms_listener():
     message_body = request.form['Body']
     number = request.form['From']
 
-    if(request.form['MediaUrl0'] is not None):
+    try:
         image_url = request.form['MediaUrl0']
-    else:
+
+    except: #no image attached
         image_url = None
+
+
 
     print("Message received (%d,%s,%s)" %(number,message_body,image_url))
     for apartment in apartments:

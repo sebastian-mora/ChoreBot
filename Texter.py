@@ -82,14 +82,14 @@ class Texter:
                       "penalized with extra Chores!" % violator.name
             self.sendMessage(roommate.number, message,None)
 
-    def sendVerification(self, verifier, roommate,image):
+    def sendVerification(self, verifier, roommate, chores, image):
         message = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  " \
                   "Please respond (" \
                   "YES %s) if he has completed their daily chores" % (
-                      verifier.name, roommate.name, roommate.chores, roommate.name)
+                      verifier.name, roommate.name, roommate.completionPending, roommate.name)
         print(
                 "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please "
                 "respond (YES %s) if he has completed their daily chores" % (
-                    verifier.name, roommate.name, roommate.chores, roommate.name))
+                    verifier.name, roommate.name, roommate.completionPending, roommate.name))
 
         self.sendMessage(verifier.number, message,image)

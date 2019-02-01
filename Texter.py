@@ -60,12 +60,16 @@ class Texter:
     # Sends message to all non-working roommates
     # TODO reduce this mehtod
     def notifyRoommatesStatus(self,roommates):
-        text = "To complete your chore please type done! It is preferred that you add a picture to aid in the " \
+        text = "To complete your chore please type ""done"" to complete all chores " \
+               "or ""done #"" to complete a single chore! It is preferred that you add a picture to aid in the " \
                "verification process. \n"
         for roommate in roommates:
             if (roommate.chores):
-                text = text + "\n" + roommate.name + ": " + str(roommate.chores) + " " + unicode("\u274C ",
-                                                                                                 'unicode-escape')  # Red Check
+                text = text + "\n" + roommate.name + ": \n"
+                i = 1
+                for chore in roommate.chores:
+                    text = text + str(i) + ": " + str(chore) + " " + unicode("\u274C ",'unicode-escape') + "\n"# Red Check
+                    i+=1
             else:
                 text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape')  # Green Check
 

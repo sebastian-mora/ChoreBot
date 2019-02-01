@@ -41,11 +41,9 @@ def sms_listener():
         image_url = request.form['MediaUrl0']
 
     except: #no image attached
-        image_url = None
+        image_url = ""
+        pass
 
-
-
-    print("Message received (%d,%s,%s)" %(number,message_body,image_url))
     for apartment in apartments:
         for roommate in apartment.roommates:
             if roommate.number == number:

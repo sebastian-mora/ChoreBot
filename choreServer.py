@@ -36,7 +36,11 @@ def assignChore():
 def sms_listener():
     message_body = request.form['Body']
     number = request.form['From']
-    image_url = request.form['MediaUrl0']
+
+    if(request.form['MediaUrl0'] ):
+        image_url = request.form['MediaUrl0']
+    else:
+        image_url = None
 
     print("Message received (%d,%s,%s)" %(number,message_body,image_url))
     for apartment in apartments:

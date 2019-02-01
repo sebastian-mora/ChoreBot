@@ -12,20 +12,20 @@
     "chore-reminder-time": "20:00",
 
     "roommates": [{"name": "Seb", "number": "+***REMOVED***", "days":["1","3"], "chores":[],"completionPending": "False"},
-                  {"name": "Ed", "number": "+***REMOVED***", "days":["3","4"], "chores":[],"completionPending": "False"},
+                  {"name": "Ed", "number": "+***REMOVED***", "days":["3","4"], "chores":["Wipe down kitchen counter and Stove","Organize the Common Room"],"completionPending": "False"},
                   {"name": "Jake", "number": "+***REMOVED***", "days":["4","5"], "chores":[],"completionPending": "False"},
                   {"name": "Chase", "number": "+***REMOVED***", "days":["2","4"], "chores":[],"completionPending": "False"}
 
                   ],
     "chores": [
       {
-        "weekly_chores": ["Sweep/Mop Common Room","Put away clean dishes", "Wipe down kitchen counter and Stove",
+        "weekly_chores": [
                           "Wipe Down Toilet", "Remove old Food from fridge",  "You got lucky no main chore!",
                           "You got lucky no main chore!","Sweep/Mop Kitchen"],
 
         "recurring_chores": ["Take out Trash", "Organize the Common Room", "Wash all dishes",
                              "Put away clean dishes","Sweep Common Room"],
-        "done_chores": []
+        "done_chores": ["Sweep/Mop Common Room","Put away clean dishes"]
       }
     ]
 

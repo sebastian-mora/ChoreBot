@@ -37,7 +37,7 @@ def sms_listener():
     message_body = request.form['Body']
     number = request.form['From']
 
-    if(request.form['MediaUrl0'] ):
+    if(request.form['MediaUrl0'] is not None):
         image_url = request.form['MediaUrl0']
     else:
         image_url = None

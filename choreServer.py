@@ -95,7 +95,7 @@ def sms_reply(apartment, sender, message_body, image_url):
                 texter.notifyRoommatesStatus(apartment.roommates)
                 apartment.choremanager.completeChores(roommate.chores)
                 roommate.chores = []
-                roommate.completionPending = False;
+                roommate.completionPending = [];
 
     elif (message_body is None and image_url is not None):  # if picture is sent after initial verification text
         if (sender.completionPending):
@@ -118,8 +118,8 @@ def sendReminder():
 # TODO Make Scheduler pass apartment into needed methods
 def scheduler():
     for apartment in apartments:
-        schedule.every().day.at(apartment.choretime).do(assignChore)
-        schedule.every().days.at(apartment.remindertime).do(sendReminder)
+        schedule.every().day.at(str(apartment.choretime)).do(assignChore)
+        schedule.every().days.at(str(apartment.remindertime)).do(sendReminder)
         schedule.every().monday.do(ApartmentReset)
 
 

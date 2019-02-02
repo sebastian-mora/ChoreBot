@@ -71,7 +71,7 @@ class Texter:
                     text = text + str(i) + ": " + str(chore) + " " + unicode("\u274C ",'unicode-escape') + "\n"# Red Check
                     i+=1
             else:
-                text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape')  # Green Check
+                text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape') + "\n" # Green Check
 
         for roommate in roommates:
             self.sendMessage(roommate.number, text,None)

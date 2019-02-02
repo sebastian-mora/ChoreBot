@@ -8,7 +8,7 @@
 
     "twillo-number": "+***REMOVED***",
 
-    "assign-chore-time":  "9:30",
+    "assign-chore-time":  "09:30",
     "chore-reminder-time": "20:00",
 
     "roommates": [{"name": "Seb", "number": "+***REMOVED***", "days":["1","3"], "chores":[],"completionPending": "False"},

@@ -110,8 +110,8 @@ def sendReminder():
 # TODO Make Scheduler pass apartment into needed methods
 def scheduler():
     for apartment in apartments:
-        schedule.every().day.at(apartment.choretime).do(assignChore)
-        schedule.every().days.at(apartment.remindertime).do(sendReminder)
+        schedule.every().day.at(str(apartment.choretime)).do(assignChore)
+        schedule.every().days.at(str(apartment.remindertime)).do(sendReminder)
         schedule.every().monday.do(ApartmentReset)
 
 
@@ -124,6 +124,8 @@ if __name__ == "__main__":
     listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
     listener_thread.setDaemon(True)
     listener_thread.start()
+    scheduler()
+    #assignChore()
     print("Starting Chron Job")
 
     while 1:

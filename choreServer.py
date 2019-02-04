@@ -71,7 +71,7 @@ def sms_reply(apartment, sender, message_body, image_url):
         for roommate in apartment.roommates:
             if roommate.number is not sender.number:
                 print("verification sent to %s", roommate.name)
-                texter.sendVerification(roommate, sender, image_url)
+                texter.sendVerification(roommate, sender, chore_selct,image_url)
 
         texter.sendMessage(sender.number, "Your request is being processed by your roommates", None)
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     listener_thread.setDaemon(True)
     listener_thread.start()
     scheduler()
-    assignChore()
+    #assignChore()
     print("Starting Chron Job")
 
     while 1:

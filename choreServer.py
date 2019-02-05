@@ -56,7 +56,7 @@ def sms_listener():
 def sms_reply(apartment, sender, message_body, image_url):
     print "From: %s in apt %s - %s" % (sender.name, apartment.aptname, message_body)
 
-    if message_body.lower() == "done" and sender.chores:  # if sender wants to complete chores
+    if "done" in message_body.lower() and sender.chores:  # if sender wants to complete chores
         chore_selct = message_body.split()
 
         # if they added a number and it is within range
@@ -92,10 +92,10 @@ def sms_reply(apartment, sender, message_body, image_url):
             if (name.lower() == roommate.name.lower() and roommate.completionPending and roommate is not sender):
                 # find roomate, check if they are waiting for veifi, make sure its not self veri
                 print("Confirmation for %s by %s" % (roommate.name, sender))
-                texter.notifyRoommatesStatus(apartment.roommates)
                 apartment.choremanager.completeChores(roommate.chores)
                 roommate.chores = []
-                roommate.completionPending = [];
+                roommate.completionPending = []
+                texter.notifyRoommatesStatus(apartment.roommates)
 
     elif (message_body is None and image_url is not None):  # if picture is sent after initial verification text
         if (sender.completionPending):

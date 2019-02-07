@@ -41,7 +41,7 @@ def sms_listener():
         image_url = request.form['MediaUrl0']
 
     except:  # no image attached
-        image_url = ""
+        image_url = None
         pass
 
     for apartment in apartments:

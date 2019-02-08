@@ -60,14 +60,18 @@ class Texter:
     # Sends message to all non-working roommates
     # TODO reduce this mehtod
     def notifyRoommatesStatus(self,roommates):
-        text = "To complete your chore please type done! It is preferred that you add a picture to aid in the " \
+        text = "To complete your chore please type ""done"" to complete all chores " \
+               "or ""done #"" to complete a single chore! It is preferred that you add a picture to aid in the " \
                "verification process. \n"
         for roommate in roommates:
             if (roommate.chores):
-                text = text + "\n" + roommate.name + ": " + str(roommate.chores) + " " + unicode("\u274C ",
-                                                                                                 'unicode-escape')  # Red Check
+                text = text + "\n" + roommate.name + ": \n"
+                i = 1
+                for chore in roommate.chores:
+                    text = text + str(i) + ": " + str(chore) + " " + unicode("\u274C ",'unicode-escape') + "\n"# Red Check
+                    i+=1
             else:
-                text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape')  # Green Check
+                text = text + "\n" + roommate.name + ": " + unicode("\u2705 ", 'unicode-escape') + "\n" # Green Check
 
         for roommate in roommates:
             self.sendMessage(roommate.number, text,None)
@@ -78,14 +82,14 @@ class Texter:
                       "penalized with extra Chores!" % violator.name
             self.sendMessage(roommate.number, message,None)
 
-    def sendVerification(self, verifier, roommate,image):
+    def sendVerification(self, verifier, roommate, chores, image):
         message = "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  " \
                   "Please respond (" \
                   "YES %s) if he has completed their daily chores" % (
-                      verifier.name, roommate.name, roommate.chores, roommate.name)
+                      verifier.name, roommate.name, roommate.completionPending, roommate.name)
         print(
                 "Hello %s! \n Your roommate %s has requested that you verify that he completed %s ! \n  Please "
                 "respond (YES %s) if he has completed their daily chores" % (
-                    verifier.name, roommate.name, roommate.chores, roommate.name))
+                    verifier.name, roommate.name, roommate.completionPending, roommate.name))
 
         self.sendMessage(verifier.number, message,image)

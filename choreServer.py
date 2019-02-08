@@ -40,8 +40,8 @@ def sms_listener():
     try:
         image_url = request.form['MediaUrl0']
 
-    except: #no image attached
-        image_url = ""
+    except:  # no image attached
+        image_url = None
         pass
 
     for apartment in apartments:
@@ -56,14 +56,22 @@ def sms_listener():
 def sms_reply(apartment, sender, message_body, image_url):
     print "From: %s in apt %s - %s" % (sender.name, apartment.aptname, message_body)
 
-    if message_body.lower() == "done" and sender.chores:  # if sender wants to complete chores
+    if "done" in message_body.lower() and sender.chores:  # if sender wants to complete chores
+        chore_selct = message_body.split()
 
-        sender.completionPending = True;
+        # if they added a number and it is within range
+        if (len(chore_selct) > 1 and chore_selct[1] > 0 and chore_selct[1] < len(sender.chores)):
+            chore_selct = chore_selct[1]
+            sender.completionPending = sender.chores[chore_selct];
+
+        else:  # if they didn't chose a chore add all the be veri
+            sender.completionPending = sender.chores
+
         print(" %s Completed his chore requesting verification" % sender.name)
         for roommate in apartment.roommates:
             if roommate.number is not sender.number:
                 print("verification sent to %s", roommate.name)
-                texter.sendVerification(roommate, sender, image_url)
+                texter.sendVerification(roommate, sender, chore_selct,image_url)
 
         texter.sendMessage(sender.number, "Your request is being processed by your roommates", None)
 
@@ -84,10 +92,10 @@ def sms_reply(apartment, sender, message_body, image_url):
             if (name.lower() == roommate.name.lower() and roommate.completionPending and roommate is not sender):
                 # find roomate, check if they are waiting for veifi, make sure its not self veri
                 print("Confirmation for %s by %s" % (roommate.name, sender))
-                texter.notifyRoommatesStatus(apartment.roommates)
                 apartment.choremanager.completeChores(roommate.chores)
                 roommate.chores = []
-                roommate.completionPending = False;
+                roommate.completionPending = []
+                texter.notifyRoommatesStatus(apartment.roommates)
 
     elif (message_body is None and image_url is not None):  # if picture is sent after initial verification text
         if (sender.completionPending):

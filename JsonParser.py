@@ -11,7 +11,7 @@ class JsonParser:
 
     def parseApartments(self):
         apartments = []
-        for i in range(0, int(self.data["len"])): #ghetto way
+        for i in range(0, int(self.data["len"])):
             apt = "Apt_%d" % i
             aptname =  self.data[apt]["Apt_name"]
             roommates = self.parseRoommates(apt)

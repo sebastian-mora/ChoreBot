@@ -23,13 +23,14 @@ class db_interface:
             if number == chore['assigned']['number'] and chore['completed'] is False:
                 return True
 
-    def update_roomate_chores(self, apt_data, roommate_number):
+    def update_roommate_chores(self, apt_data, roommate):
 
         changed = False
 
         for chore in apt_data['chores']['weekly_chores']:
-            if roommate_number == chore['assigned']['number'] and chore['completed'] is False:
+            if roommate['number'] == chore['assigned']['number'] and chore['completed'] is False:
                 chore['completed'] = True
+                roommate['has_chores'] = False
                 changed = True
 
         if changed:

@@ -4,13 +4,13 @@ import pymongo
 from flask import Flask, request
 from Texter import Texter
 from db_interface import db_interface
-from random import shuffle
+from random import sample
 
 
 app = Flask(__name__)
-texter = Texter("***REMOVED***", "***REMOVED***", "+***REMOVED***")
+texter = Texter("XXXX", "XXXX", "+XXX")
 date = datetime.datetime.today().weekday()
-db = db_interface("localhost:27017", "chorebot", "apt")
+db = db_interface("mongodb://localhost:27017/", "chorebot", "apts")
 
 
 
@@ -28,26 +28,26 @@ def sms_listener():
 def assign_chores():
 
     def give_chore(apt_data, roommate):
-
-        for chore in shuffle(apt_data['chores']['weekly_chores']):
+        chores = apt_data['chores']['weekly_chores']
+        for chore in sample(chores, len(chores)):
             if chore['completed'] == False:
                 chore['assigned'] = {"name": roommate['name'], "number": roommate['number']}
+                roommate['has_chores'] = True
+                db.update_roommate_chores(apt_data, roommate['number'])
                 return apt_data
 
 
 
     all_apts = db.mycol.find({})
-    current_time = '09:30'
+    current_time = "09:30"
 
-    # TODO Add random selection for more than one chore
+    # TODO Add  election for more than one chore
     for apt in all_apts:
         if apt['assign-chore-time'] == current_time:
             for roommate in apt['roommates']:
-                if date in roommate['days']:
+                if date in roommate['days'] and roommate['has_chores'] is False:
                     apt = give_chore(apt,roommate)
-
-
-
+        texter.notifyRoommatesStatus(apt)
 
 
 # LOGIC
@@ -68,7 +68,7 @@ def sms_reply(sender_number, message_body):
 
             for roommate in apartment['roommates']:
                 if roommate['name'] in name and db.has_chores(roommate, apartment):
-                    db.update_roomate_chores(apartment, roommate['number'])
+                    db.update_roommate_chores(apartment, roommate)
                     texter.sendMessage(roommate['number'], 'Your chore(s) have been verified!')
                     texter.sendMessage(sender_number, "Thank you! Your request has been processed")
 
@@ -84,19 +84,26 @@ def sms_reply(sender_number, message_body):
 #TODO THIS SHIT
 def sendReminder():
     all_apts = db.mycol.find({})
-    current_time = '09:30'
+    current_time = get_time()
 
-    # TODO Add random selection for more than one chore
     for apt in all_apts:
         pass
 
-# TODO THIS SHIT
-def ApartmentReset():
-    pass
 
+def ApartmentReset():
+    for apt in db.mycol.find({}):
+        db.reset_all_chores(apt)
+
+
+def get_time():
+    now = datetime.datetime.now()
+    return str(datetime.time(now.hour, now.minute))[:5]
 
 if __name__ == "__main__":
     # listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
     # listener_thread.setDaemon(True)
     # listener_thread.start()
-    pass
+    # assign_chores()
+     apt = db.get_apartment("+17072257532")
+     db.reset_all_chores(apt)
+

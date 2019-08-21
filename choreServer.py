@@ -1,142 +1,102 @@
 import datetime
 import threading
-import time
-import schedule
+import pymongo
 from flask import Flask, request
 from Texter import Texter
-from JsonParser import JsonParser
+from db_interface import db_interface
+from random import shuffle
 
-jsonparser = JsonParser("data.json")
-
-apartments = jsonparser.parseApartments()
 
 app = Flask(__name__)
 texter = Texter("***REMOVED***", "***REMOVED***", "+***REMOVED***")
 date = datetime.datetime.today().weekday()
+db = db_interface("localhost:27017", "chorebot", "apt")
 
 
-# This method finds the roommates who signed up for the current weekday and randomly give them a chore
-def assignChore():
-    for apartment in apartments:
-        for roommate in apartment.roommates:
-            if (roommate.chores):  # if roommate did not complete chore give it back to them and shame
-                texter.shameMessage(apartment, roommate)
-                roommate.chores.append(apartment.choremanager.giveWeeklyChore())
 
-            for workday in roommate.days:
-                if (workday == date):
-                    print("%s IS getting a chore" % roommate.name)
-                    roommate.chores.append(apartment.choremanager.giveWeeklyChore())
-                    roommate.chores.append(apartment.choremanager.giveRecurringChore())
-        texter.notifyRoommatesStatus(apartment.roommates)
-
-
-# Starts flask server. On get it parses then calles sms_reply to handle the logic
-@app.route("/sms", methods=['GET', 'POST'])
+# Starts flask server. On get it parses then calls sms_reply to handle the logic
+@app.route("/sms", methods=['POST'])
 def sms_listener():
-    message_body = request.form['Body']
-    number = request.form['From']
 
-    try:
-        image_url = request.form['MediaUrl0']
+    message_body = request.form['Body'].lower()
+    sender_number = request.form['From']
 
-    except:  # no image attached
-        image_url = None
-        pass
+    sms_reply(sender_number, message_body)
 
-    for apartment in apartments:
-        for roommate in apartment.roommates:
-            if roommate.number == number:
-                sender = roommate
+    return 'OK'
 
-    sms_reply(apartment, sender, message_body.lower(), image_url)
-    return str("OK")
+def assign_chores():
+
+    def give_chore(apt_data, roommate):
+
+        for chore in shuffle(apt_data['chores']['weekly_chores']):
+            if chore['completed'] == False:
+                chore['assigned'] = {"name": roommate['name'], "number": roommate['number']}
+                return apt_data
 
 
-def sms_reply(apartment, sender, message_body, image_url):
-    print "From: %s in apt %s - %s" % (sender.name, apartment.aptname, message_body)
 
-    if "done" in message_body.lower() and sender.chores:  # if sender wants to complete chores
-        chore_selct = message_body.split()
+    all_apts = db.mycol.find({})
+    current_time = '09:30'
 
-        # if they added a number and it is within range
-        if (len(chore_selct) > 1 and chore_selct[1] > 0 and chore_selct[1] < len(sender.chores)):
-            chore_selct = chore_selct[1]
-            sender.completionPending = sender.chores[chore_selct];
+    # TODO Add random selection for more than one chore
+    for apt in all_apts:
+        if apt['assign-chore-time'] == current_time:
+            for roommate in apt['roommates']:
+                if date in roommate['days']:
+                    apt = give_chore(apt,roommate)
 
-        else:  # if they didn't chose a chore add all the be veri
-            sender.completionPending = sender.chores
 
-        print(" %s Completed his chore requesting verification" % sender.name)
-        for roommate in apartment.roommates:
-            if roommate.number is not sender.number:
-                print("verification sent to %s", roommate.name)
-                texter.sendVerification(roommate, sender, chore_selct,image_url)
 
-        texter.sendMessage(sender.number, "Your request is being processed by your roommates", None)
 
-    elif ("yes" in message_body.lower()):  # if roommate verifies chores or done
+
+# LOGIC
+def sms_reply(sender_number, message_body):
+
+    apartment = db.get_apartment(sender_number)
+    sender = db.get_sender(sender_number, apartment)
+
+
+    # User wants to check off chores
+    if 'done' in message_body and db.has_chores(sender_number, apartment):
+        texter.send_message_all(apartment['roommates'], "%s would like you to verify that he completed his chores!")
+
+    # User wants to verify chores
+    elif 'yes' in message_body:
         try:
-            name = message_body.split()
-            name = name[1]
-            if (
-                    not any(roommate.name.lower() == name.lower() for roommate in
-                            apartment.roommates)):  # if the name found is
-                # not a person doing chores
-                raise Exception
+            name = message_body.split()[1]
+
+            for roommate in apartment['roommates']:
+                if roommate['name'] in name and db.has_chores(roommate, apartment):
+                    db.update_roomate_chores(apartment, roommate['number'])
+                    texter.sendMessage(roommate['number'], 'Your chore(s) have been verified!')
+                    texter.sendMessage(sender_number, "Thank you! Your request has been processed")
 
         except:
-            texter.sendMessage(sender.number, "Invalid input please use the format (DONE NAME)", None)
-
-        for roommate in apartment.roommates:  # find the person who verified them
-            if (name.lower() == roommate.name.lower() and roommate.completionPending and roommate is not sender):
-                # find roomate, check if they are waiting for veifi, make sure its not self veri
-                print("Confirmation for %s by %s" % (roommate.name, sender))
-                apartment.choremanager.completeChores(roommate.chores)
-                roommate.chores = []
-                roommate.completionPending = []
-                texter.notifyRoommatesStatus(apartment.roommates)
-
-    elif (message_body is None and image_url is not None):  # if picture is sent after initial verification text
-        if (sender.completionPending):
-            roommates = apartment.roommates
-            del roommates[sender]  # remove sender from list
-            texter.sendMessageAll(roommates, "", image_url)
+            texter.sendMessage(sender_number, "Roommate not found")
 
     else:
-        texter.sendMessage(sender.number, "Invalid input! Accepted input \"done\" or \"yes (roommate name)\" ", None)
+        texter.sendMessage(sender, "Command not recognized")
 
 
+####### DB INTERFACE #################
+
+#TODO THIS SHIT
 def sendReminder():
-    for apartment in apartments:
-        for roommate in apartment.roommates:
-            if (roommate.chores):
-                texter.sendMessage(roommate.number, "ChoreBot has noticed you haven't done your chores! And "
-                                                    "so have your roommates!", None)
+    all_apts = db.mycol.find({})
+    current_time = '09:30'
 
+    # TODO Add random selection for more than one chore
+    for apt in all_apts:
+        pass
 
-# TODO Make Scheduler pass apartment into needed methods
-def scheduler():
-    for apartment in apartments:
-        schedule.every().day.at(str(apartment.choretime)).do(assignChore)
-        schedule.every().days.at(str(apartment.remindertime)).do(sendReminder)
-        schedule.every().monday.do(ApartmentReset)
-
-
+# TODO THIS SHIT
 def ApartmentReset():
-    for apartment in apartments:
-        apartment.choremanager.resetWeeklyChores()
+    pass
 
 
 if __name__ == "__main__":
-    listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
-    listener_thread.setDaemon(True)
-    listener_thread.start()
-    scheduler()
-    #assignChore()
-    print("Starting Chron Job")
-
-    while 1:
-        date = datetime.datetime.today().weekday()
-        schedule.run_pending()
-        time.sleep(5)
+    # listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
+    # listener_thread.setDaemon(True)
+    # listener_thread.start()
+    pass

@@ -1,10 +1,11 @@
 import datetime
 import threading
-import pymongo
 from flask import Flask, request
 from Texter import Texter
 from db_interface import db_interface
 from random import sample
+import schedule
+import time
 
 
 app = Flask(__name__)
@@ -30,6 +31,8 @@ def ticker():
     for apt in all_apts:
         if apt['assign-chore-time'] == current_time:
             assign_chores(apt)
+        elif apt['chore-reminder-time'] == current_time:
+            send_reminder(apt)
 
 
 
@@ -50,7 +53,7 @@ def assign_chores(apt):
         texter.notifyRoommatesStatus(apt)
 
 
-# LOGIC
+# MAIN LOGIC
 def sms_reply(sender_number, message_body):
 
     apartment = db.get_apartment(sender_number)
@@ -78,15 +81,11 @@ def sms_reply(sender_number, message_body):
         texter.sendMessage(sender, "Command not recognized")
 
 
-####### DB INTERFACE #################
+def send_reminder(apt):
+    for roommate in apt['roommates']:
+        if roommate['has_chores']:
+            texter.sendMessage(roommate['number'], "Make sure to finish your chores by the end of the night!")
 
-#TODO THIS SHIT
-def sendReminder():
-    all_apts = db.mycol.find({})
-    current_time = get_time()
-
-    for apt in all_apts:
-        pass
 
 def ApartmentReset():
     for apt in db.mycol.find({}):
@@ -98,10 +97,16 @@ def get_time():
     return str(datetime.time(now.hour, now.minute))[:5]
 
 if __name__ == "__main__":
-    # listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
-    # listener_thread.setDaemon(True)
-    # listener_thread.start()
-    # assign_chores()
-     apt = db.get_apartment("+17072257532")
-     db.reset_apt(apt)
+    listener_thread = threading.Thread(target=app.run, kwargs={'host': '0.0.0.0'})
+    listener_thread.setDaemon(True)
+    listener_thread.start()
+
+    schedule.every(1).minutes.do(ticker)
+
+    while 1:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+
 

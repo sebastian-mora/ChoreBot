@@ -12,8 +12,6 @@ texter = Texter("XXXX", "XXXX", "+XXX")
 date = datetime.datetime.today().weekday()
 db = db_interface("mongodb://localhost:27017/", "chorebot", "apts")
 
-
-
 # Starts flask server. On get it parses then calls sms_reply to handle the logic
 @app.route("/sms", methods=['POST'])
 def sms_listener():
@@ -25,7 +23,17 @@ def sms_listener():
 
     return 'OK'
 
-def assign_chores():
+def ticker():
+    current_time  = get_time()
+    all_apts = db.mycol.find({})
+
+    for apt in all_apts:
+        if apt['assign-chore-time'] == current_time:
+            assign_chores(apt)
+
+
+
+def assign_chores(apt):
 
     def give_chore(apt_data, roommate):
         chores = apt_data['chores']['weekly_chores']
@@ -33,20 +41,12 @@ def assign_chores():
             if chore['completed'] == False:
                 chore['assigned'] = {"name": roommate['name'], "number": roommate['number']}
                 roommate['has_chores'] = True
-                db.update_roommate_chores(apt_data, roommate['number'])
+                db.complete_roommate_chores(apt_data, roommate['number'])
                 return apt_data
 
-
-
-    all_apts = db.mycol.find({})
-    current_time = "09:30"
-
-    # TODO Add  election for more than one chore
-    for apt in all_apts:
-        if apt['assign-chore-time'] == current_time:
-            for roommate in apt['roommates']:
-                if date in roommate['days'] and roommate['has_chores'] is False:
-                    apt = give_chore(apt,roommate)
+    for roommate in apt['roommates']:
+        if date in roommate['days'] and roommate['has_chores'] is False:
+            apt = give_chore(apt,roommate)
         texter.notifyRoommatesStatus(apt)
 
 
@@ -55,7 +55,6 @@ def sms_reply(sender_number, message_body):
 
     apartment = db.get_apartment(sender_number)
     sender = db.get_sender(sender_number, apartment)
-
 
     # User wants to check off chores
     if 'done' in message_body and db.has_chores(sender_number, apartment):
@@ -68,7 +67,7 @@ def sms_reply(sender_number, message_body):
 
             for roommate in apartment['roommates']:
                 if roommate['name'] in name and db.has_chores(roommate, apartment):
-                    db.update_roommate_chores(apartment, roommate)
+                    db.complete_roommate_chores(apartment, roommate)
                     texter.sendMessage(roommate['number'], 'Your chore(s) have been verified!')
                     texter.sendMessage(sender_number, "Thank you! Your request has been processed")
 
@@ -89,10 +88,9 @@ def sendReminder():
     for apt in all_apts:
         pass
 
-
 def ApartmentReset():
     for apt in db.mycol.find({}):
-        db.reset_all_chores(apt)
+        db.reset_apt(apt)
 
 
 def get_time():
@@ -105,5 +103,5 @@ if __name__ == "__main__":
     # listener_thread.start()
     # assign_chores()
      apt = db.get_apartment("+17072257532")
-     db.reset_all_chores(apt)
+     db.reset_apt(apt)
 

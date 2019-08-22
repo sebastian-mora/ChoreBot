@@ -23,7 +23,7 @@ class db_interface:
             if number == chore['assigned']['number'] and chore['completed'] is False:
                 return True
 
-    def update_roommate_chores(self, apt_data, roommate):
+    def complete_roommate_chores(self, apt_data, roommate):
 
         changed = False
 
@@ -35,3 +35,19 @@ class db_interface:
 
         if changed:
             self.mycol.update({"_id": apt_data["_id"]}, apt_data)
+
+
+    def update_apt(self, apt_data):
+        self.mycol.update({"_id": apt_data["_id"]}, apt_data)
+
+    def reset_apt(self, apt_data):
+
+        for chore in apt_data['chores']:
+            chore['assigned'] = { "name" : None, "number" : None}
+            chore['completed'] = False
+        for roommate in apt_data['roommates']:
+            roommate['has_chores'] = False
+
+        self.update_apt(apt_data)
+
+
